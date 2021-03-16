@@ -247,6 +247,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 961099494}
+  pingFrequency: 1
+  debug: 1
 --- !u!4 &1509208459
 Transform:
   m_ObjectHideFlags: 0
