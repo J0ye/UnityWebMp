@@ -81,6 +81,7 @@ public class NetworkManager : MonoBehaviour
         else if(msg.Contains("Players:"))
         {
             var parts = msg.Split(":".ToCharArray());
+            if (debug) Debug.Log("Player information: " + parts[1]);
             parts = parts[1].Split("%".ToCharArray());
             if(debug) Debug.Log("Parts Count: " + parts.Length);
             if(parts.Length > 1)
@@ -88,5 +89,16 @@ public class NetworkManager : MonoBehaviour
                 if(debug) Debug.Log("player 0: " + parts[0] + " and Player 1: " + parts[1]);
             }
         }
+    }
+
+    private void OnApplicationQuit()
+    {
+        CloseConnection();
+    }
+
+    private void CloseConnection()
+    {
+        string msg = "Delete:" + player.GetId();
+        webSocket.Send(msg);
     }
 }
