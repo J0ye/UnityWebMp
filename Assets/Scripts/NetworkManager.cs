@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using DG.Tweening;
 
 
 // Use plugin namespace
@@ -11,11 +12,14 @@ using HybridWebSocket;
 public class NetworkManager : MonoBehaviour
 {
     public PlayerController player;
+    public GameObject onlinePlayerPrefab;
     [Tooltip ("Determines how often information is sent to the server, in seconds.")]
     public float pingFrequency = 1f;
     public bool debug = false;
 
     private WebSocket2DMp webSocket;
+    private Dictionary<Guid, Vector3> onlinePlayers = new Dictionary<Guid, Vector3>();
+    private Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
     private bool readyForId = false;
 
     void Start()
@@ -23,6 +27,16 @@ public class NetworkManager : MonoBehaviour
         StartCoroutine(SetUpSocket());
         StartCoroutine(SendPlayerPos());
         StartCoroutine(GetPlayers());
+        StartCoroutine(UpdateOnlinePlayerPositions());
+    }
+
+    public void SetPingFrequency(string input)
+    {
+        float result;
+        if(float.TryParse(input, out result))
+        {
+            pingFrequency = result;
+        }
     }
 
     private IEnumerator SetUpSocket()
@@ -51,7 +65,7 @@ public class NetworkManager : MonoBehaviour
             float x = player.transform.position.x;
             float y = player.transform.position.y;
             string msg = "Pos:" + x + "/" + y + "/" + player.GetId();
-            if(debug) Debug.Log("Sending " + msg);
+            //if(debug) Debug.Log("Sending " + msg);
             webSocket.Send(msg);
         }
         yield return new WaitForSeconds(pingFrequency);
@@ -68,6 +82,27 @@ public class NetworkManager : MonoBehaviour
         StartCoroutine(GetPlayers());
     }
 
+    private IEnumerator UpdateOnlinePlayerPositions()
+    {
+        if (debug) Debug.Log("There are " + onlinePlayerObjects.Count + " players online");
+        Guid[] keys = new Guid[onlinePlayerObjects.Count];
+        onlinePlayerObjects.Keys.CopyTo(keys, 0);
+        if (onlinePlayers.Count > 0)
+        {
+            foreach (Guid key in keys)
+            {
+                if (onlinePlayerObjects[key] == null)
+                {
+                    onlinePlayerObjects[key] = Instantiate(onlinePlayerPrefab);
+                }
+                Vector3 targetPos = onlinePlayers[key];
+                onlinePlayerObjects[key].transform.DOMove(targetPos, pingFrequency/2, false);
+            }
+        }
+        yield return new WaitForSeconds(pingFrequency);
+        StartCoroutine(UpdateOnlinePlayerPositions());
+    }
+
     private void ProcessMessage(string msg)
     {
         // If the message is about the players new ID
@@ -80,13 +115,52 @@ public class NetworkManager : MonoBehaviour
         // If the message is about the list of players
         else if(msg.Contains("Players:"))
         {
+            // Remove Declaration
             var parts = msg.Split(":".ToCharArray());
-            if (debug) Debug.Log("Player information: " + parts[1]);
             parts = parts[1].Split("%".ToCharArray());
-            if(debug) Debug.Log("Parts Count: " + parts.Length);
-            if(parts.Length > 1)
+
+            // Print every recived info
+            /*if(debug)
             {
-                if(debug) Debug.Log("player 0: " + parts[0] + " and Player 1: " + parts[1]);
+                int temp = parts.Length;
+                Debug.Log("Player Count: " + temp);
+                int i = 0;
+                foreach (string s in parts)
+                {
+                    Debug.Log("Part " + i + ": " + s);
+                    i++;
+                }
+            }*/
+
+            foreach(string s in parts)
+            {
+                if(!String.IsNullOrEmpty(s))
+                {
+                    Guid guid;
+                    Vector3 pos = new Vector3();
+
+                    var split = s.Split("!".ToCharArray());
+
+                    guid = Guid.Parse(split[0]);
+                    split = split[1].Split("/".ToCharArray());
+                    pos.x = float.Parse(split[0]);
+                    pos.y = float.Parse(split[1]);
+                    pos.z = float.Parse(split[2]);
+
+                    if(onlinePlayers.ContainsKey(guid))
+                    {
+                        // The player exist, so rewrite his position
+                        onlinePlayers[guid] = pos;
+                    } else
+                    {
+                        // The player does not exist, add
+                        onlinePlayers.Add(guid, pos);
+                        // add new object for new player
+                        GameObject obj = null;
+                        onlinePlayerObjects.Add(guid, obj);
+                        if (debug) Debug.Log("new online player with pos: " + pos);
+                    }
+                }
             }
         }
     }
