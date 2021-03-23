@@ -17,12 +17,12 @@ public class NetworkManager : MonoBehaviour
     public float pingFrequency = 1f;
     public bool debug = false;
 
-    private WebSocket2DMp webSocket;
-    private Dictionary<Guid, Vector3> onlinePlayers = new Dictionary<Guid, Vector3>();
-    private Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
-    private bool readyForId = false;
+    protected WebSocketBehaviour behaviour;
+    protected Dictionary<Guid, Vector3> onlinePlayers = new Dictionary<Guid, Vector3>();
+    protected Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
+    protected bool readyForId = false;
 
-    void Start()
+    protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
         StartCoroutine(SendPlayerPos());
@@ -30,7 +30,7 @@ public class NetworkManager : MonoBehaviour
         StartCoroutine(UpdateOnlinePlayerPositions());
     }
 
-    public void SetPingFrequency(string input)
+    public virtual void SetPingFrequency(string input)
     {
         float result;
         if(float.TryParse(input, out result))
@@ -39,56 +39,57 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    private IEnumerator SetUpSocket()
+    protected virtual IEnumerator SetUpSocket()
     {
-        while (WebSocket2DMp.instance == null)
+        while (WebSocketBehaviour.instance == null)
         {
             Debug.Log("Waiting for instance");
             yield return new WaitForSeconds(0.5f);
         }
 
-        webSocket = WebSocket2DMp.instance;
-        webSocket.GetWS().OnOpen += () =>
+        behaviour = WebSocketBehaviour.instance;
+        behaviour.GetWS().OnOpen += () =>
         {
             readyForId = true;
         };
-        webSocket.GetWS().OnMessage += (byte[] msg) =>
+        behaviour.GetWS().OnMessage += (byte[] msg) =>
         {
             ProcessMessage(Encoding.UTF8.GetString(msg));
         };
     }
 
-    private IEnumerator SendPlayerPos()
+    protected virtual IEnumerator SendPlayerPos()
     {
-        if(webSocket != null && player.IsReady())
+        if(behaviour != null && player.IsReady())
         {
             float x = player.transform.position.x;
             float y = player.transform.position.y;
-            string msg = "Pos:" + x + "/" + y + "/" + player.GetId();
+            float z = player.transform.position.z;
+            string msg = "Pos:" + x + "/" + y + "/" + z + "/" + player.GetId();
             //if(debug) Debug.Log("Sending " + msg);
-            webSocket.Send(msg);
+            behaviour.Send(msg);
         }
         yield return new WaitForSeconds(pingFrequency);
         StartCoroutine(SendPlayerPos());
     }
 
-    private IEnumerator GetPlayers()
+    protected virtual IEnumerator GetPlayers()
     {
-        if (webSocket != null)
+        if (behaviour != null)
         {
-            webSocket.Send("Get:" + player.GetId());
+            behaviour.Send("Get:" + player.GetId());
         }
         yield return new WaitForSeconds(pingFrequency);
         StartCoroutine(GetPlayers());
     }
 
-    private IEnumerator UpdateOnlinePlayerPositions()
+    protected virtual IEnumerator UpdateOnlinePlayerPositions()
     {
         if (debug) Debug.Log("There are " + onlinePlayerObjects.Count + " players online");
-        Guid[] keys = new Guid[onlinePlayerObjects.Count];
-        onlinePlayerObjects.Keys.CopyTo(keys, 0);
         if (onlinePlayers.Count > 0)
         {
+            Guid[] keys = new Guid[onlinePlayerObjects.Count];
+            onlinePlayerObjects.Keys.CopyTo(keys, 0);
             foreach (Guid key in keys)
             {
                 if (onlinePlayerObjects[key] == null)
@@ -103,7 +104,7 @@ public class NetworkManager : MonoBehaviour
         StartCoroutine(UpdateOnlinePlayerPositions());
     }
 
-    private void ProcessMessage(string msg)
+    protected virtual void ProcessMessage(string msg)
     {
         // If the message is about the players new ID
         if(readyForId && msg.Contains("ID"))
@@ -165,14 +166,14 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    private void OnApplicationQuit()
+    protected virtual void OnApplicationQuit()
     {
         CloseConnection();
     }
 
-    private void CloseConnection()
+    protected virtual void CloseConnection()
     {
         string msg = "Delete:" + player.GetId();
-        webSocket.Send(msg);
+        behaviour.Send(msg);
     }
 }

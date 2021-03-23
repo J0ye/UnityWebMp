@@ -391,7 +391,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 961099493}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1863cbe6e6e036546b361ce783132290, type: 3}
+  m_Script: {fileID: 11500000, guid: da31df084c875f242a301cf9dfa54e4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
@@ -489,7 +489,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84a8dc19a48fe7e43a8237a3b6f8c976, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 961099494}
+  player: {fileID: 0}
   onlinePlayerPrefab: {fileID: 5741844256600898562, guid: f1e01947bfbc6a347945e4f704350f89,
     type: 3}
   pingFrequency: 0.1
