@@ -707,7 +707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68d154c12bfa8a94191ed2c5ada51d68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  adress: wss://www.joye.dev:9000/base
+  adress: ws://localhost:9000/base
 --- !u!114 &1807530496
 MonoBehaviour:
   m_ObjectHideFlags: 0
