@@ -77,7 +77,7 @@ public class NetworkManager : MonoBehaviour
     {
         if(!player.IsReady())
         {
-            GetNewGuid();
+            // Fix waiting for guid
         }
         else if (behaviour != null)
         {
