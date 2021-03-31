@@ -75,7 +75,11 @@ public class NetworkManager : MonoBehaviour
 
     protected virtual IEnumerator GetPlayers()
     {
-        if (behaviour != null)
+        if(!player.IsReady())
+        {
+            GetNewGuid();
+        }
+        else if (behaviour != null)
         {
             behaviour.Send("Get:" + player.GetId());
         }
@@ -102,6 +106,11 @@ public class NetworkManager : MonoBehaviour
         }
         yield return new WaitForSeconds(pingFrequency);
         StartCoroutine(UpdateOnlinePlayerPositions());
+    }
+
+    public void GetNewGuid()
+    {
+        behaviour.Send("Get guid");
     }
 
     protected virtual void ProcessMessage(string msg)

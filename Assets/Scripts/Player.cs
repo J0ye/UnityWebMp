@@ -12,7 +12,11 @@ public class Player : MonoBehaviour
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
-        return new Vector3(h, 0, v);
+        Vector3 forward = transform.forward * v;
+        Vector3 sideways = transform.right * h;
+        
+        Vector3 re = forward + sideways;
+        return re;
     }
 
     public void SetId(Guid newId)

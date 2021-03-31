@@ -8,7 +8,7 @@ using HybridWebSocket;
 
 public class WebSocketBehaviour : MonoBehaviour
 {
-    public string adress = "ws://localhost:9000/2dmp";
+    public string adress = "ws://joye.dev:9000/2dmp";
     public static WebSocketBehaviour instance;
 
     private WebSocket ws;
@@ -25,6 +25,7 @@ public class WebSocketBehaviour : MonoBehaviour
             instance = this;
 
         // Create WebSocket instance
+        Debug.Log("Connecting to " + adress);
         ws = WebSocketFactory.CreateInstance(adress);
 
         // Add OnOpen event listener
