@@ -30,13 +30,9 @@ public class NetworkManager : MonoBehaviour
         StartCoroutine(UpdateOnlinePlayerPositions());
     }
 
-    public virtual void SetPingFrequency(string input)
+    public virtual void SetPingFrequency(float input)
     {
-        float result;
-        if(float.TryParse(input, out result))
-        {
-            pingFrequency = result;
-        }
+        pingFrequency = input;
     }
 
     protected virtual IEnumerator SetUpSocket()

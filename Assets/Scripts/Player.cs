@@ -33,6 +33,7 @@ public class Player : MonoBehaviour
         if (!setUp)
             Debug.LogError("Guid is not set up and can not be read.");
 
+
         return guid;
     }
 

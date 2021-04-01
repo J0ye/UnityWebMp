@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class POVCamera : MonoBehaviour
 {
+    public KeyCode activationKey = KeyCode.Mouse0;
     [Range(1f, 10f)]
     public float sensitivity = 3f;
     [Range(1f, 10f)]
@@ -16,6 +17,9 @@ public class POVCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Dont run the Update method unless the activation key is pressed
+        if (!Input.GetKey(activationKey)) return;
+
         // Calculation of camera orientation
         mouseOrientation = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
         mouseOrientation = Vector2.Scale(mouseOrientation, new Vector2(sensitivity * smooth, sensitivity * smooth));
