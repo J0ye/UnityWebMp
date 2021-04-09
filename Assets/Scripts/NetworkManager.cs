@@ -92,6 +92,7 @@ public class NetworkManager : MonoBehaviour
             onlinePlayerObjects.Keys.CopyTo(keys, 0);
             foreach (Guid key in keys)
             {
+                // Update positon
                 if (onlinePlayerObjects[key] == null)
                 {
                     onlinePlayerObjects[key] = Instantiate(onlinePlayerPrefab);
@@ -114,8 +115,12 @@ public class NetworkManager : MonoBehaviour
         // If the message is about the players new ID
         if(readyForId && msg.Contains("ID"))
         {
-            var parts = msg.Split(": ".ToCharArray());
-            Guid newId = Guid.Parse(parts[2]);
+            var parts = msg.Split(":".ToCharArray());
+            for(int i = parts.Length; i <= 0; i--)
+            {
+                Debug.Log("part " + i + ": " + parts[i-1]);
+            }
+            Guid newId = Guid.Parse(parts[1]);
             player.SetId(newId);
         }
         // If the message is about the list of players
@@ -159,7 +164,7 @@ public class NetworkManager : MonoBehaviour
                         onlinePlayers[guid] = pos;
                     } else
                     {
-                        // The player does not exist, add
+                        // The player does not exist yet, add
                         onlinePlayers.Add(guid, pos);
                         // add new object for new player
                         GameObject obj = null;

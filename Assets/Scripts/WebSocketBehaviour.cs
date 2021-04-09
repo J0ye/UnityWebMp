@@ -10,12 +10,13 @@ public class WebSocketBehaviour : MonoBehaviour
 {
     public string adress = "ws://joye.dev:9000/2dmp";
     public static WebSocketBehaviour instance;
+    public bool isDebug = false;
 
-    private WebSocket ws;
-    private bool connected = false;
+    protected WebSocket ws;
+    protected bool connected = false;
 
     // Use this for initialization
-    void Start()
+    protected virtual void Start()
     {
         // Singelton
         if (instance != null)
@@ -39,7 +40,7 @@ public class WebSocketBehaviour : MonoBehaviour
         // Add OnMessage event listener
         ws.OnMessage += (byte[] msg) =>
         {
-            Debug.Log("WS received message: " + Encoding.UTF8.GetString(msg));
+            if(isDebug) Debug.Log("WS received message: " + Encoding.UTF8.GetString(msg));
         };
 
         // Add OnError event listener
@@ -56,9 +57,11 @@ public class WebSocketBehaviour : MonoBehaviour
 
         // Connect to the server
         ws.Connect();
+
+        StartCoroutine(Ping());
     }
 
-    private void OnApplicationQuit()
+    protected virtual void OnApplicationQuit()
     {
         ws.Close();
     }
@@ -74,5 +77,11 @@ public class WebSocketBehaviour : MonoBehaviour
         {
             ws.Send(Encoding.UTF8.GetBytes(txt));
         }
+    }
+    private IEnumerator Ping()
+    {
+        yield return new WaitForSeconds(1f);
+        if (connected) Send("Ping");
+        StartCoroutine(Ping());
     }
 }

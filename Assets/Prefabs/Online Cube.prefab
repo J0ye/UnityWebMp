@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3467083428023040397}
   - component: {fileID: 8306269795300155635}
   - component: {fileID: 1287408005543322085}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 7273230234159363918}
   - component: {fileID: 3611867264827438680}
   - component: {fileID: 1599532874975867491}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -199,7 +199,7 @@ GameObject:
   - component: {fileID: 1122713859235189326}
   - component: {fileID: 7156087208246260940}
   - component: {fileID: 1724909422468785705}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Online Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}

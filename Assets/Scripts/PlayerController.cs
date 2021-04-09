@@ -10,27 +10,32 @@ public class PlayerController : Player
     public float jumpStrength = 5f;
     public LayerMask groundLayer;
 
-    private float startingHoverHeight;
+    private float startingFallSpeed;
 
     private void Start()
     {
-        startingHoverHeight = hoverHeight;
+        startingFallSpeed = fallSpeed;
     }
 
     void Update()
     {
-        if (Input.anyKey)
+        // Walking
+        if (ShouldMove())
         {
             var currentPos = transform.position;
             Vector3 target = new Vector3 (GetInputAxis().x, 0, GetInputAxis().z); // ignore the y axis
             transform.position = Vector3.MoveTowards(currentPos,
                 currentPos + target, speed * Time.deltaTime);
+        }
 
-            if(Input.GetKeyDown(KeyCode.Space) && hoverHeight == startingHoverHeight)
-            {
-                hoverHeight *= jumpStrength;
-                DOTween.To(() => hoverHeight, x => hoverHeight = x, startingHoverHeight, 1);
-            }
+        // Jumping
+        if (Input.GetKey(KeyCode.Space) && fallSpeed == startingFallSpeed)
+        {
+            Debug.Log("FallSpeed: " + fallSpeed + " and height: " + hoverHeight);
+            fallSpeed *= -jumpStrength;
+            hoverHeight -= 1;
+            DOTween.To(() => hoverHeight, x => hoverHeight = x, hoverHeight + 1, 1);
+            DOTween.To(() => fallSpeed, x => fallSpeed = x, startingFallSpeed, 1);
         }
 
         RaycastHit hit;
