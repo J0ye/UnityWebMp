@@ -10,6 +10,7 @@ public class ChatManager : MonoBehaviour
 {
     public GameObject messagePrefab;
     public float displayedMessageTimer = 3f;
+    public Text inputText;
 
     protected ChatWebSocketBehaviour behaviour;
     private List<GameObject> displayedMessages = new List<GameObject>();
@@ -20,6 +21,7 @@ public class ChatManager : MonoBehaviour
 
     public void SendToChat(string msg)
     {
+        ClearInput();
         ChatWebSocketBehaviour.instance.Send(msg);
     }
 
@@ -58,5 +60,10 @@ public class ChatManager : MonoBehaviour
         yield return new WaitForSeconds(timer);
         if(displayedMessages.Find(p => p == target)) displayedMessages.Remove(target);
         Destroy(target);
+    }
+
+    private void ClearInput()
+    {
+        inputText.text = "";
     }
 }

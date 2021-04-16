@@ -5,10 +5,6 @@ using System.Text;
 using UnityEngine;
 using DG.Tweening;
 
-
-// Use plugin namespace
-using HybridWebSocket;
-
 public class NetworkManager : MonoBehaviour
 {
     public PlayerController player;
@@ -21,13 +17,21 @@ public class NetworkManager : MonoBehaviour
     protected Dictionary<Guid, Vector3> onlinePlayers = new Dictionary<Guid, Vector3>();
     protected Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
     protected bool readyForId = false;
+    protected Vector3 lastFramePos = Vector3.zero;
 
     protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
-        StartCoroutine(SendPlayerPos());
-        StartCoroutine(GetPlayers());
         StartCoroutine(UpdateOnlinePlayerPositions());
+    }
+
+    protected void Update()
+    {
+        if(lastFramePos != transform.position)
+        {
+            SendPlayerPos();
+            lastFramePos = transform.position;
+        }
     }
 
     public virtual void SetPingFrequency(float input)
@@ -54,9 +58,9 @@ public class NetworkManager : MonoBehaviour
         };
     }
 
-    protected virtual IEnumerator SendPlayerPos()
+    protected virtual void SendPlayerPos()
     {
-        if(behaviour != null && player.IsReady())
+        if (behaviour != null && player.IsReady())
         {
             float x = player.transform.position.x;
             float y = player.transform.position.y;
@@ -65,8 +69,6 @@ public class NetworkManager : MonoBehaviour
             //if(debug) Debug.Log("Sending " + msg);
             behaviour.Send(msg);
         }
-        yield return new WaitForSeconds(pingFrequency);
-        StartCoroutine(SendPlayerPos());
     }
 
     protected virtual IEnumerator GetPlayers()
@@ -98,7 +100,16 @@ public class NetworkManager : MonoBehaviour
                     onlinePlayerObjects[key] = Instantiate(onlinePlayerPrefab);
                 }
                 Vector3 targetPos = onlinePlayers[key];
-                onlinePlayerObjects[key].transform.DOMove(targetPos, pingFrequency/2, false);
+                if(targetPos == new Vector3(-9999, -9999, -9999))
+                {
+                    // The player is at the exit position.
+                    Destroy(onlinePlayerObjects[key]);
+                    onlinePlayerObjects.Remove(key);
+                    onlinePlayers.Remove(key);
+                } else
+                {
+                    onlinePlayerObjects[key].transform.DOMove(targetPos, pingFrequency / 2, false);
+                }
             }
         }
         yield return new WaitForSeconds(pingFrequency);
@@ -123,67 +134,37 @@ public class NetworkManager : MonoBehaviour
             Guid newId = Guid.Parse(parts[1]);
             player.SetId(newId);
         }
-        // If the message is about the list of players
-        else if(msg.Contains("Players:"))
+        else if(msg.Contains("Pos:"))
         {
-            // Remove Declaration
-            var parts = msg.Split(":".ToCharArray());
-            parts = parts[1].Split("%".ToCharArray());
+            var stringArray = msg.Split(":".ToCharArray());
+            stringArray = stringArray[1].Split("/".ToCharArray());
+            string x = stringArray[0];
+            string y = stringArray[1];
+            string z = stringArray[2];
+            string id = stringArray[3];
 
-            // Print every recived info
-            /*if(debug)
+            Guid guid = Guid.Parse(id);
+            // Only work on the data if it isnt this players data, that was send back
+            if(guid != player.GetId())
             {
-                int temp = parts.Length;
-                Debug.Log("Player Count: " + temp);
-                int i = 0;
-                foreach (string s in parts)
+                float xPos = float.Parse(x);
+                float yPos = float.Parse(y);
+                float zPos = float.Parse(z);
+                Vector3 newPos = new Vector3(xPos, yPos, zPos);
+                if (onlinePlayers.ContainsKey(guid))
                 {
-                    Debug.Log("Part " + i + ": " + s);
-                    i++;
+                    onlinePlayers[guid] = newPos;
                 }
-            }*/
-
-            foreach(string s in parts)
-            {
-                if(!String.IsNullOrEmpty(s))
+                else
                 {
-                    Guid guid;
-                    Vector3 pos = new Vector3();
-
-                    var split = s.Split("!".ToCharArray());
-
-                    guid = Guid.Parse(split[0]);
-                    split = split[1].Split("/".ToCharArray());
-                    pos.x = float.Parse(split[0]);
-                    pos.y = float.Parse(split[1]);
-                    pos.z = float.Parse(split[2]);
-
-                    if(onlinePlayers.ContainsKey(guid))
-                    {
-                        // The player exist, so rewrite his position
-                        onlinePlayers[guid] = pos;
-                    } else
-                    {
-                        // The player does not exist yet, add
-                        onlinePlayers.Add(guid, pos);
-                        // add new object for new player
-                        GameObject obj = null;
-                        onlinePlayerObjects.Add(guid, obj);
-                        if (debug) Debug.Log("new online player with pos: " + pos);
-                    }
+                    // Add new player
+                    onlinePlayers.Add(guid, newPos);
+                    // add new object for new player
+                    GameObject obj = null;
+                    onlinePlayerObjects.Add(guid, obj);
+                    if (debug) Debug.Log("new online player with pos: " + newPos);
                 }
             }
         }
-    }
-
-    protected virtual void OnApplicationQuit()
-    {
-        CloseConnection();
-    }
-
-    protected virtual void CloseConnection()
-    {
-        string msg = "Delete:" + player.GetId();
-        behaviour.Send(msg);
     }
 }

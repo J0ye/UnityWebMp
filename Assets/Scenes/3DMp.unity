@@ -1152,6 +1152,7 @@ MonoBehaviour:
   messagePrefab: {fileID: 3605835922321757393, guid: 56c02cccc956a53488809a95d4452cbe,
     type: 3}
   displayedMessageTimer: 3
+  inputText: {fileID: 1069490055}
 --- !u!114 &398300677
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1164,7 +1165,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60a5ca17910b1504090d1cb6a19e1ab5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  adress: wss://joye.dev:9000/chat
+  target: chat
+  adress: wss://joye.dev:9000/
   isDebug: 1
 --- !u!114 &398300678
 MonoBehaviour:
@@ -1192,18 +1194,7 @@ MonoBehaviour:
       m_Calls: []
   onPressJ:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 398300676}
-        m_MethodName: ProcessMessage
-        m_Mode: 5
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Test Chat Message is Displayed with a long text
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   onPressReturn:
     m_PersistentCalls:
       m_Calls: []
@@ -3601,7 +3592,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68d154c12bfa8a94191ed2c5ada51d68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  adress: wss://joye.dev:9000/base
+  target: base
+  adress: wss://joye.dev:9000/
   isDebug: 0
 --- !u!114 &1807530496
 MonoBehaviour:
