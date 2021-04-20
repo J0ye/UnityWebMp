@@ -19,24 +19,27 @@ public class NetworkManager : MonoBehaviour
     protected bool readyForId = false;
     protected Vector3 lastFramePos = Vector3.zero;
 
+    public virtual void SetPingFrequency(float input)
+    {
+        pingFrequency = input;
+    }
+
+    public void GetNewGuid()
+    {
+        behaviour.Send("Get guid");
+    }
+
     protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
-        StartCoroutine(UpdateOnlinePlayerPositions());
     }
 
     protected void Update()
     {
-        if(lastFramePos != transform.position)
+        if(lastFramePos.Round(2) != player.transform.position.Round(2))
         {
             SendPlayerPos();
-            lastFramePos = transform.position;
         }
-    }
-
-    public virtual void SetPingFrequency(float input)
-    {
-        pingFrequency = input;
     }
 
     protected virtual IEnumerator SetUpSocket()
@@ -68,57 +71,34 @@ public class NetworkManager : MonoBehaviour
             string msg = "Pos:" + x + "/" + y + "/" + z + "/" + player.GetId();
             //if(debug) Debug.Log("Sending " + msg);
             behaviour.Send(msg);
+            lastFramePos = player.transform.position;
         }
     }
 
-    protected virtual IEnumerator GetPlayers()
+    protected virtual IEnumerator UpdateOnlinePlayerPosition(Guid key)
     {
-        if(!player.IsReady())
+        Vector3 targetPos = onlinePlayers[key];
+        GameObject targetObject;
+        // Update positon
+        if (onlinePlayerObjects[key] == null)
         {
-            // Fix waiting for guid
+            onlinePlayerObjects[key] = Instantiate(onlinePlayerPrefab);
         }
-        else if (behaviour != null)
+
+        targetObject = onlinePlayerObjects[key];
+
+        if (targetPos == new Vector3(-9999, -9999, -9999))
         {
-            behaviour.Send("Get:" + player.GetId());
+            // The player is at the exit position.
+            Destroy(onlinePlayerObjects[key]);
+            onlinePlayerObjects.Remove(key);
+            onlinePlayers.Remove(key);
+        }
+        else if (targetObject.transform.position.Round(3) != targetPos.Round(3))
+        {
+            targetObject.transform.DOMove(targetPos, pingFrequency / 2, false);
         }
         yield return new WaitForSeconds(pingFrequency);
-        StartCoroutine(GetPlayers());
-    }
-
-    protected virtual IEnumerator UpdateOnlinePlayerPositions()
-    {
-        if (debug) Debug.Log("There are " + onlinePlayerObjects.Count + " players online");
-        if (onlinePlayers.Count > 0)
-        {
-            Guid[] keys = new Guid[onlinePlayerObjects.Count];
-            onlinePlayerObjects.Keys.CopyTo(keys, 0);
-            foreach (Guid key in keys)
-            {
-                // Update positon
-                if (onlinePlayerObjects[key] == null)
-                {
-                    onlinePlayerObjects[key] = Instantiate(onlinePlayerPrefab);
-                }
-                Vector3 targetPos = onlinePlayers[key];
-                if(targetPos == new Vector3(-9999, -9999, -9999))
-                {
-                    // The player is at the exit position.
-                    Destroy(onlinePlayerObjects[key]);
-                    onlinePlayerObjects.Remove(key);
-                    onlinePlayers.Remove(key);
-                } else
-                {
-                    onlinePlayerObjects[key].transform.DOMove(targetPos, pingFrequency / 2, false);
-                }
-            }
-        }
-        yield return new WaitForSeconds(pingFrequency);
-        StartCoroutine(UpdateOnlinePlayerPositions());
-    }
-
-    public void GetNewGuid()
-    {
-        behaviour.Send("Get guid");
     }
 
     protected virtual void ProcessMessage(string msg)
@@ -133,6 +113,11 @@ public class NetworkManager : MonoBehaviour
             }
             Guid newId = Guid.Parse(parts[1]);
             player.SetId(newId);
+            SendPlayerPos(); // notify the server abut our position
+        }
+        else if(msg.Contains("Update")) // The server is aksing for an update on this players position
+        {
+            SendPlayerPos();
         }
         else if(msg.Contains("Pos:"))
         {
@@ -164,7 +149,31 @@ public class NetworkManager : MonoBehaviour
                     onlinePlayerObjects.Add(guid, obj);
                     if (debug) Debug.Log("new online player with pos: " + newPos);
                 }
+                StartCoroutine(UpdateOnlinePlayerPosition(guid));
             }
         }
+    }
+}
+
+// Adds .Round() to any Vector3
+static class ExtensionMethods
+{
+    /// <summary>
+    /// Rounds Vector3.
+    /// </summary>
+    /// <param name="vector3"></param>
+    /// <param name="decimalPlaces"></param>
+    /// <returns></returns>
+    public static Vector3 Round(this Vector3 vector3, int decimalPlaces = 2)
+    {
+        float multiplier = 1;
+        for (int i = 0; i < decimalPlaces; i++)
+        {
+            multiplier *= 10f;
+        }
+        return new Vector3(
+            Mathf.Round(vector3.x * multiplier) / multiplier,
+            Mathf.Round(vector3.y * multiplier) / multiplier,
+            Mathf.Round(vector3.z * multiplier) / multiplier);
     }
 }

@@ -11,6 +11,8 @@ public class BasicBehaviour : MonoBehaviour
     public string target = "base";
     [Tooltip ("This will be altered for use in editor and desktop apps.")]
     public string adress = "wss://joye.dev:9000/";
+    public string websocketState = "";
+    public float pingFrequency = 0.5f;
 
     protected WebSocket ws;
     protected bool connected = false;
@@ -45,6 +47,12 @@ public class BasicBehaviour : MonoBehaviour
         StartCoroutine(Ping());
     }
 
+    private void Update()
+    {
+        string state = ws.GetState().ToString();
+        if (websocketState != state) websocketState = state;
+    }
+
     public void Send(string txt)
     {
         if (connected)
@@ -55,7 +63,7 @@ public class BasicBehaviour : MonoBehaviour
 
     private IEnumerator Ping()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(pingFrequency);
         if (connected) Send("Ping");
         StartCoroutine(Ping());
     }

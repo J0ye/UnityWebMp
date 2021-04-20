@@ -563,7 +563,15 @@ namespace HybridWebSocket
 
             // Check state
             if (this.ws.ReadyState != WebSocketSharp.WebSocketState.Open)
-                throw new WebSocketInvalidStateException("WebSocket is not in open state.");
+            {
+                if(this.ws.ReadyState == WebSocketSharp.WebSocketState.Closed || this.ws.ReadyState == WebSocketSharp.WebSocketState.Closing)
+                {
+                    ws.Connect();
+                    Debug.Log("Trying to reconnect after disconnect");
+                    return;
+                }
+                    throw new WebSocketInvalidStateException("WebSocket is not in open state.");
+            }
 
             try
             {
