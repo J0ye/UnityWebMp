@@ -560,7 +560,6 @@ namespace HybridWebSocket
         /// <param name="data">Payload data.</param>
         public void Send(byte[] data)
         {
-
             // Check state
             if (this.ws.ReadyState != WebSocketSharp.WebSocketState.Open)
             {
