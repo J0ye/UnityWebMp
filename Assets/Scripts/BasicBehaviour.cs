@@ -11,11 +11,11 @@ public class BasicBehaviour : MonoBehaviour
     public string target = "base";
     [Tooltip ("This will be altered for use in editor and desktop apps.")]
     public string adress = "wss://joye.dev:9000/";
-    public string websocketState = "";
     public float pingFrequency = 0.5f;
 
     protected WebSocket ws;
     protected bool connected = false;
+    protected string websocketState = "not active";
 
     protected virtual void Start()
     {
@@ -59,6 +59,11 @@ public class BasicBehaviour : MonoBehaviour
         {
             ws.Send(Encoding.UTF8.GetBytes(txt));
         }
+    }
+
+    public string GetState()
+    {
+        return websocketState.ToString();
     }
 
     private IEnumerator Ping()

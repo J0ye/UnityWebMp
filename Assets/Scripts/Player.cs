@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    [Header("Input Settings")]
+    public DPadInput visualInput;
     public List<KeyCode> movementKeys = new List<KeyCode>();
     private Guid guid;
     private bool setUp = false;
@@ -13,6 +15,11 @@ public class Player : MonoBehaviour
     {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
+        /*if( visualInput != null)
+        {
+            h = visualInput.vector.x;
+            v = visualInput.vector.y;
+        }*/
 
         Vector3 forward = transform.forward * v;
         Vector3 sideways = transform.right * h;
@@ -23,12 +30,16 @@ public class Player : MonoBehaviour
 
     protected virtual bool ShouldMove()
     {
-        foreach(KeyCode kc in movementKeys)
+        foreach (KeyCode kc in movementKeys)
         {
-            if(Input.GetKey(kc))
+            if (Input.GetKey(kc))
             {
                 return true;
             }
+        }
+        if (visualInput != null)
+        {
+            if (visualInput.x != 0 || visualInput.y != 0) return true;
         }
 
         return false;

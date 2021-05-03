@@ -4,6 +4,7 @@ using DG.Tweening;
 
 public class PlayerController : Player
 {
+    [Header("Movment Options")]
     public float speed = 5f;
     public float fallSpeed = 5f;
     public float hoverHeight = 1f;

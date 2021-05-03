@@ -32,6 +32,8 @@ public class NetworkManager : MonoBehaviour
     protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
+        new SyncedStrings();
+        new SyncedFloats();
     }
 
     protected void Update()
@@ -152,6 +154,17 @@ public class NetworkManager : MonoBehaviour
                 StartCoroutine(UpdateOnlinePlayerPosition(guid));
             }
         }
+    }
+
+    private void TestSyncVar()
+    {
+        SyncString testString = new SyncString("MyTestString", "MyTestValue");
+        SyncFloat testFloat = new SyncFloat("MyTestFloat", 7.4f);
+        string tempS = testString.ToString();
+        string tempF = testFloat.ToString();
+        SyncString parsedS = SyncString.Parse(tempS);
+        SyncFloat parsedF = SyncFloat.Parse(tempF);
+        Debug.Log(SyncedStrings.Instance.GetCount() + " strings and " + SyncedFloats.Instance.GetCount() + " floats.");
     }
 }
 
