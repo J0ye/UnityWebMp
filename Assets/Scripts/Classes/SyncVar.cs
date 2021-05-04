@@ -2,28 +2,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using HybridWebSocket;
 
 public class SyncVar
 {
-    public string m_callName;
+    /// <summary>
+    /// Unique name to identify the variable on run time. Can only be set by inheriting classes in their constructor
+    /// </summary>
+    private string callName;
+
+    public virtual string CallName { get => callName; protected set => callName = value; }
+
+    protected virtual void SetCallName(string value) { }
 }
 
 public class SyncString : SyncVar
 {
-    public string m_value;
+    private string value;
+    public string Value { get => value; set => SetValue(value); }
 
     /// <summary>
     /// Standard constructor for a SyncString
     /// </summary>
     /// <param name="name">Name of the SyncString</param>
     /// <param name="value">Value of the SyncString</param>
-    public SyncString(string name, string value)
+    public SyncString(string name, string val)
     {
         if (name.Contains("SyncString") || name.Contains(":") || name.Contains("|")) 
             throw new ArgumentException("Scritp is trying to create a illigal SyncString with the name " + name);
 
-        m_callName = name;
-        m_value = value;
+        CallName = name;
+        value = val;
         AddToSyncedList();
     }
     /// <summary>
@@ -33,8 +42,8 @@ public class SyncString : SyncVar
     public SyncString(string toParse)
     {
         SyncString temp = Parse(toParse);
-        m_callName = temp.m_callName;
-        m_value = temp.m_value;
+        CallName = temp.CallName;
+        value = temp.Value;
         AddToSyncedList();
     }
 
@@ -44,7 +53,7 @@ public class SyncString : SyncVar
     /// <returns>string in SyncStrin syntax, i.e. SyncString:m_callName| m_value</returns>
     public override string ToString()
     {
-        return "SyncString: " + m_callName + "|" + m_value;
+        return "SyncString: " + CallName + "|" + Value;
     }
     /// <summary>
     /// Parses a target string into SyncString, only if the traget
@@ -61,6 +70,8 @@ public class SyncString : SyncVar
             split[0] = split[0].TrimStart();
             if(SyncedStrings.Instance.GetEntry(split[0]) != null)
             {
+                Debug.Log("Found existing string");
+                SyncedStrings.Instance.GetEntry(split[0]).value = split[1];
                 return SyncedStrings.Instance.GetEntry(split[0]);
             }
             SyncString temp = new SyncString(split[0], split[1]);
@@ -68,6 +79,20 @@ public class SyncString : SyncVar
         }
 
         throw new InvalidOperationException("Script is trying to parse a string that is not a SyncString." + target + " misses 'SyncString:'  syntax.");
+    }
+    /// <summary>
+    /// Sends the values of this SyncString to the server.
+    /// </summary>
+    public void SendChanges()
+    {
+        SyncedStrings.Instance.Behaviour.Send(ToString());
+        Debug.Log("Send changes to server");
+    }
+
+    protected void SetValue(string val)
+    {
+        value = val;
+        SendChanges();
     }
 
     /// <summary>
@@ -81,29 +106,29 @@ public class SyncString : SyncVar
         }
         else
         {
-            new SyncedStrings();
-            Debug.LogWarning("Script added a synced string without creating a list for them first. List created. Insert new SyncedStrings() before " + m_callName);
-            SyncedStrings.Instance.AddEntry(this);
+            throw new InvalidOperationException("Script is trying to create a SyncedString without creating  a list first. Insert new SyncedStrings(Behaviour); before " + CallName);
         }
     }
 }
 
 public class SyncFloat : SyncVar
 {
-    public float m_value;
+    private float value;
+
+    public float Value { get => value; set => SetValue(value); }
 
     /// <summary>
     /// Standard constructor for a SyncFloat
     /// </summary>
     /// <param name="name">Name of the SyncFloat</param>
     /// <param name="value">Value of the SyncFloat</param>
-    public SyncFloat(string name, float value)
+    public SyncFloat(string name, float val)
     {
         if (name.Contains("SyncFloat") || name.Contains(":") || name.Contains("|"))
             throw new ArgumentException("Scritp is trying to create a illigal SyncFloat with the name " + name);
 
-        m_callName = name;
-        m_value = value;
+        CallName = name;
+        value = val;
         AddToSyncedList();
     }
     /// <summary>
@@ -113,8 +138,8 @@ public class SyncFloat : SyncVar
     public SyncFloat(string toParse)
     {
         SyncFloat temp = Parse(toParse);
-        m_callName = temp.m_callName;
-        m_value = temp.m_value;
+        CallName = temp.CallName;
+        value = temp.Value;
         AddToSyncedList();
     }
 
@@ -124,7 +149,7 @@ public class SyncFloat : SyncVar
     /// <returns>string in SyncFloat syntax, i.e. SyncFloat:m_callName|m_value</returns>
     public override string ToString()
     {
-        return "SyncFloat: " + m_callName + "|" + m_value.ToString();
+        return "SyncFloat: " + CallName + "|" + Value.ToString();
     }
     /// <summary>
     /// Parses a target string into SyncFloat, only if the traget
@@ -141,6 +166,8 @@ public class SyncFloat : SyncVar
             split[0] = split[0].TrimStart();
             if (SyncedFloats.Instance.GetEntry(split[0]) != null)
             {
+                Debug.Log("Found existing float");
+                SyncedFloats.Instance.GetEntry(split[0]).value = float.Parse(split[1]);
                 return SyncedFloats.Instance.GetEntry(split[0]);
             }
             SyncFloat temp = new SyncFloat(split[0], float.Parse(split[1]));
@@ -148,6 +175,20 @@ public class SyncFloat : SyncVar
         }
 
         throw new InvalidOperationException("Script is trying to parse a float that is not a SyncFloat." + target + " misses 'SyncFloat:'  syntax.");
+    }
+    /// <summary>
+    /// Sends the values of this SyncFloat to the server.
+    /// </summary>
+    public void SendChanges()
+    {
+        SyncedStrings.Instance.Behaviour.Send(ToString());
+        Debug.Log("Send changes to server");
+    }
+
+    protected void SetValue(float val)
+    {
+        value = val;
+        SendChanges();
     }
 
     /// <summary>
@@ -158,51 +199,54 @@ public class SyncFloat : SyncVar
         if (SyncedFloats.Instance != null)
         {
             SyncedFloats.Instance.AddEntry(this);
+            Debug.Log("Added " + CallName + " to list of floats");
         }
         else
         {
-            new SyncedFloats();
-            Debug.LogWarning("Script added a synced float without creating a list for them first. List created. Insert new SyncedFloats() before " + m_callName);
-            SyncedFloats.Instance.AddEntry(this);
+            throw new InvalidOperationException("Script is trying to create a SyncedFloat without creating a list first. Insert new SyncedFloats(Behaviour); before " + CallName);
         }
     }
 }
 
 public class SyncedStrings
 {
-    public static SyncedStrings Instance;
-
+    private BasicBehaviour bb;
     private List<SyncString> m_vars = new List<SyncString>();
 
-    public SyncedStrings()
+    public BasicBehaviour Behaviour { get => bb; }
+    public static SyncedStrings Instance;
+
+    public SyncedStrings(BasicBehaviour basic)
     {
         if (Instance == null)
         {
             Instance = this;
         }
+
+        bb = basic;
     }
 
     public void AddEntry(SyncString newEntry)
     {
-        if (!Contains(newEntry.m_callName))
+        if (!Contains(newEntry.CallName))
         {
             m_vars.Add(newEntry);
-            Debug.Log("Added new SyncString " + newEntry.m_callName);
+            Debug.Log("Added new SyncString " + newEntry.CallName);
         } else
         {
-            throw new ArgumentException("Can not sync multiple strings with the name: " + newEntry.m_callName);
+            throw new ArgumentException("Can not sync multiple strings with the name: " + newEntry.CallName);
         }
     }
 
     public void RemoveEntry(SyncString targetEntry)
     {
-        if (Contains(targetEntry.m_callName))
+        if (Contains(targetEntry.CallName))
         {
             m_vars.Add(targetEntry);
         }
         else
         {
-            Debug.LogError("Script is trying to remove an entry that dose not exit: " + targetEntry.m_callName);
+            Debug.LogError("Script is trying to remove an entry that dose not exit: " + targetEntry.CallName);
         }
     }
 
@@ -212,7 +256,7 @@ public class SyncedStrings
         {
             foreach(SyncString str in m_vars)
             {
-                if(str.m_callName == target)
+                if(str.CallName == target)
                 {
                     return str;
                 }
@@ -230,7 +274,7 @@ public class SyncedStrings
     {
         foreach(SyncString str in m_vars)
         {
-            if (str.m_callName == name) return true;
+            if (str.CallName == name) return true;
         }
 
         return false;
@@ -239,39 +283,43 @@ public class SyncedStrings
 
 public class SyncedFloats
 {
-    public static SyncedFloats Instance;
-
+    private BasicBehaviour bb;
     private List<SyncFloat> m_vars = new List<SyncFloat>();
 
-    public SyncedFloats()
+    public static SyncedFloats Instance;
+    public BasicBehaviour Behaviour { get => bb;}
+
+    public SyncedFloats(BasicBehaviour basic)
     {
         if (Instance == null)
         {
             Instance = this;
         }
+
+        bb = basic;
     }
 
     public void AddEntry(SyncFloat newEntry)
     {
-        if (!Contains(newEntry.m_callName))
+        if (!Contains(newEntry.CallName))
         {
             m_vars.Add(newEntry);
         }
         else
         {
-            throw new ArgumentException("Can not sync multiple Floats with the name: " + newEntry.m_callName);
+            throw new ArgumentException("Can not sync multiple Floats with the name: " + newEntry.CallName);
         }
     }
 
     public void RemoveEntry(SyncFloat targetEntry)
     {
-        if (Contains(targetEntry.m_callName))
+        if (Contains(targetEntry.CallName))
         {
             m_vars.Add(targetEntry);
         }
         else
         {
-            Debug.LogError("Script is trying to remove an entry that dose not exit: " + targetEntry.m_callName);
+            Debug.LogError("Script is trying to remove an entry that dose not exit: " + targetEntry.CallName);
         }
     }
 
@@ -281,7 +329,7 @@ public class SyncedFloats
         {
             foreach (SyncFloat str in m_vars)
             {
-                if (str.m_callName == target)
+                if (str.CallName == target)
                 {
                     return str;
                 }
@@ -299,7 +347,7 @@ public class SyncedFloats
     {
         foreach (SyncFloat str in m_vars)
         {
-            if (str.m_callName == name) return true;
+            if (str.CallName == name) return true;
         }
 
         return false;

@@ -16,8 +16,14 @@ public class NetworkManager : MonoBehaviour
     protected WebSocketBehaviour behaviour;
     protected Dictionary<Guid, Vector3> onlinePlayers = new Dictionary<Guid, Vector3>();
     protected Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
-    protected bool readyForId = false;
+    protected SyncFloat score;
     protected Vector3 lastFramePos = Vector3.zero;
+    protected bool readyForId = false;
+
+    public void UpScore()
+    {
+        score.Value++;
+    }
 
     public virtual void SetPingFrequency(float input)
     {
@@ -32,8 +38,6 @@ public class NetworkManager : MonoBehaviour
     protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
-        new SyncedStrings();
-        new SyncedFloats();
     }
 
     protected void Update()
@@ -61,6 +65,11 @@ public class NetworkManager : MonoBehaviour
         {
             ProcessMessage(Encoding.UTF8.GetString(msg));
         };
+        new SyncedStrings(behaviour);
+        new SyncedFloats(behaviour);
+        TestSyncVar();
+        score = new SyncFloat("score", 0);
+        Debug.Log("Created syncfloat with name " + score.CallName);
     }
 
     protected virtual void SendPlayerPos()
@@ -120,6 +129,12 @@ public class NetworkManager : MonoBehaviour
         else if(msg.Contains("Update")) // The server is aksing for an update on this players position
         {
             SendPlayerPos();
+        }
+        else if (msg.Contains("Sync")) // The server is aksing for an update on this players position
+        {
+            Debug.Log("Got syncvar message:" + msg);
+            if (msg.Contains("SyncString")) SyncString.Parse(msg);
+            else if (msg.Contains("SyncFloat")) SyncFloat.Parse(msg);
         }
         else if(msg.Contains("Pos:"))
         {
