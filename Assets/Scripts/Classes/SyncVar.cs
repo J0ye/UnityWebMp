@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using HybridWebSocket;
+using Msg;
 
 public class SyncVar
 {
@@ -32,7 +32,7 @@ public class SyncString : SyncVar
             throw new ArgumentException("Scritp is trying to create a illigal SyncString with the name " + name);
 
         CallName = name;
-        value = val;
+        this.value = val;
         AddToSyncedList();
     }
     /// <summary>
@@ -56,6 +56,38 @@ public class SyncString : SyncVar
         return "SyncString: " + CallName + "|" + Value;
     }
     /// <summary>
+    /// Turns this SyncString firt into a SyncVarMessage object, so it can be converted into a json string. 
+    /// </summary>
+    /// <returns>A json string with Message type, player id, callName, value as a string and an empty float</returns>
+    public string ToJson(Guid guid)
+    {
+        SyncVarMessage temp = new SyncVarMessage(WebsocketMessageType.SyncString, guid, CallName, Value, 0);
+        return JsonUtility.ToJson(temp);
+    }
+    /// <summary>
+    /// Converts json string into a SyncString 
+    /// and if the SyncString is already registered in SyncStrings, it will update the value and return the list element instead.
+    /// </summary>
+    /// <returns>Either a new SyncString object or an existing and updated entry of SyncStrings</returns>
+    public static SyncString FromJson(string msg)
+    {
+        SyncVarMessage temp = JsonUtility.FromJson<SyncVarMessage>(msg);
+        if (SyncedStrings.Instance.GetEntry(temp.callName) != null)
+        {
+            SyncedStrings.Instance.GetEntry(temp.callName).value = temp.stringValue;
+            return SyncedStrings.Instance.GetEntry(temp.callName);
+        }
+        else if (!string.IsNullOrEmpty(temp.callName))
+        {
+            SyncString returnValue = new SyncString(temp.callName, temp.stringValue);
+            return returnValue;
+        }
+        else
+        {
+            throw new InvalidCastException("Script is trying to parse a SyncString from a json string without proper structure. Json: " + msg);
+        }
+    }
+    /// <summary>
     /// Parses a target string into SyncString, only if the traget
     /// is in the SyncString syntax, i.e. SyncString:m_callName| m_value
     /// </summary>
@@ -70,7 +102,6 @@ public class SyncString : SyncVar
             split[0] = split[0].TrimStart();
             if(SyncedStrings.Instance.GetEntry(split[0]) != null)
             {
-                Debug.Log("Found existing string");
                 SyncedStrings.Instance.GetEntry(split[0]).value = split[1];
                 return SyncedStrings.Instance.GetEntry(split[0]);
             }
@@ -85,13 +116,12 @@ public class SyncString : SyncVar
     /// </summary>
     public void SendChanges()
     {
-        SyncedStrings.Instance.Behaviour.Send(ToString());
-        Debug.Log("Send changes to server");
+        SyncedStrings.Instance.Behaviour.Send(ToJson(SyncedStrings.Instance.playerID));
     }
 
     protected void SetValue(string val)
     {
-        value = val;
+        this.value = val;
         SendChanges();
     }
 
@@ -128,7 +158,7 @@ public class SyncFloat : SyncVar
             throw new ArgumentException("Scritp is trying to create a illigal SyncFloat with the name " + name);
 
         CallName = name;
-        value = val;
+        this.value = val;
         AddToSyncedList();
     }
     /// <summary>
@@ -152,6 +182,38 @@ public class SyncFloat : SyncVar
         return "SyncFloat: " + CallName + "|" + Value.ToString();
     }
     /// <summary>
+    /// Turns this SyncFloat firt into a SyncVarMessage object, so it can be converted into a json string. 
+    /// </summary>
+    /// <returns>A json string with Message type, player id, callName, an empty string and the value as a string</returns>
+    public string ToJson(Guid guid)
+    {
+        SyncVarMessage temp = new SyncVarMessage(WebsocketMessageType.SyncFloat, guid, CallName, null, Value);
+        return JsonUtility.ToJson(temp);
+    }
+    /// <summary>
+    /// Converts json string into a Syncfloat 
+    /// and if the SyncFloat is already registered in SyncFloats, it will update the value and return the list element instead.
+    /// </summary>
+    /// <returns>Either a new SyncFloat object or an existing and updated entry of SyncFloats</returns>
+    public static SyncFloat FromJson(string msg)
+    {
+        SyncVarMessage temp = JsonUtility.FromJson<SyncVarMessage>(msg);
+        if (SyncedFloats.Instance.GetEntry(temp.callName) != null)
+        {
+            SyncedFloats.Instance.GetEntry(temp.callName).value = temp.floatValue;
+            return SyncedFloats.Instance.GetEntry(temp.callName);
+        }
+        else if (!string.IsNullOrEmpty(temp.callName))
+        {
+            SyncFloat returnValue = new SyncFloat(temp.callName, temp.floatValue);
+            return returnValue;
+        } 
+        else
+        {
+            throw new InvalidCastException("Script is trying to parse a Syncfloat from a json string without proper structure. Json: " + msg);
+        }
+    }
+    /// <summary>
     /// Parses a target string into SyncFloat, only if the traget
     /// is in the SyncFloat syntax, i.e. SyncFloat:m_callName|m_value
     /// </summary>
@@ -166,7 +228,6 @@ public class SyncFloat : SyncVar
             split[0] = split[0].TrimStart();
             if (SyncedFloats.Instance.GetEntry(split[0]) != null)
             {
-                Debug.Log("Found existing float");
                 SyncedFloats.Instance.GetEntry(split[0]).value = float.Parse(split[1]);
                 return SyncedFloats.Instance.GetEntry(split[0]);
             }
@@ -181,13 +242,12 @@ public class SyncFloat : SyncVar
     /// </summary>
     public void SendChanges()
     {
-        SyncedStrings.Instance.Behaviour.Send(ToString());
-        Debug.Log("Send changes to server");
+        SyncedFloats.Instance.Behaviour.Send(ToJson(SyncedFloats.Instance.playerID));
     }
 
     protected void SetValue(float val)
     {
-        value = val;
+        this.value = val;
         SendChanges();
     }
 
@@ -199,7 +259,6 @@ public class SyncFloat : SyncVar
         if (SyncedFloats.Instance != null)
         {
             SyncedFloats.Instance.AddEntry(this);
-            Debug.Log("Added " + CallName + " to list of floats");
         }
         else
         {
@@ -214,9 +273,10 @@ public class SyncedStrings
     private List<SyncString> m_vars = new List<SyncString>();
 
     public BasicBehaviour Behaviour { get => bb; }
+    public Guid playerID;
     public static SyncedStrings Instance;
 
-    public SyncedStrings(BasicBehaviour basic)
+    public SyncedStrings(BasicBehaviour basic, Guid id)
     {
         if (Instance == null)
         {
@@ -224,6 +284,7 @@ public class SyncedStrings
         }
 
         bb = basic;
+        playerID = id;
     }
 
     public void AddEntry(SyncString newEntry)
@@ -231,7 +292,6 @@ public class SyncedStrings
         if (!Contains(newEntry.CallName))
         {
             m_vars.Add(newEntry);
-            Debug.Log("Added new SyncString " + newEntry.CallName);
         } else
         {
             throw new ArgumentException("Can not sync multiple strings with the name: " + newEntry.CallName);
@@ -287,9 +347,10 @@ public class SyncedFloats
     private List<SyncFloat> m_vars = new List<SyncFloat>();
 
     public static SyncedFloats Instance;
-    public BasicBehaviour Behaviour { get => bb;}
+    public BasicBehaviour Behaviour { get => bb; }
+    public Guid playerID;
 
-    public SyncedFloats(BasicBehaviour basic)
+    public SyncedFloats(BasicBehaviour basic, Guid id)
     {
         if (Instance == null)
         {
@@ -297,6 +358,7 @@ public class SyncedFloats
         }
 
         bb = basic;
+        playerID = id;
     }
 
     public void AddEntry(SyncFloat newEntry)

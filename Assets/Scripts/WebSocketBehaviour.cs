@@ -25,7 +25,7 @@ public class WebSocketBehaviour : BasicBehaviour
         ws.OnOpen += () =>
         {
             Debug.Log("Connected to base!");
-            Debug.Log("Base state: " + ws.GetState().ToString());
+            if(isDebug) Debug.Log("Base state: " + ws.GetState().ToString());
             connected = true;
         };
 

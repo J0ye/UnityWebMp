@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using Msg;
 using DG.Tweening;
 
 public class NetworkManager : MonoBehaviour
@@ -22,7 +23,13 @@ public class NetworkManager : MonoBehaviour
 
     public void UpScore()
     {
+        Debug.Log("Upping score");
         score.Value++;
+    }
+
+    public void ScoreInConsole()
+    {
+        Debug.Log("Score is: " + score.Value.ToString());
     }
 
     public virtual void SetPingFrequency(float input)
@@ -30,10 +37,34 @@ public class NetworkManager : MonoBehaviour
         pingFrequency = input;
     }
 
-    public void GetNewGuid()
+#region Test Functions 
+    public void TestSyncVar()
     {
-        behaviour.Send("Get guid");
+        SyncString testString = new SyncString("MyTestString", "MyTestValue");
+        SyncFloat testFloat = new SyncFloat("MyTestFloat", 7.4f);
+        string tempS = testString.ToString();
+        string tempF = testFloat.ToString();
+        SyncString parsedS = SyncString.Parse(tempS);
+        SyncFloat parsedF = SyncFloat.Parse(tempF);
+        Debug.Log("String as json: " + testString.ToJson(player.GetId()));
+        Debug.Log("And back to SyncVar " + SyncString.FromJson(testString.ToJson(player.GetId())).CallName 
+            + " " + SyncString.FromJson(testString.ToJson(player.GetId())).Value);
+        Debug.Log("Float as json: " + testFloat.ToJson(player.GetId()));
+        Debug.Log("And back to SyncVar " + SyncFloat.FromJson(testFloat.ToJson(player.GetId())).CallName
+            + " " + SyncFloat.FromJson(testFloat.ToJson(player.GetId())).Value);
     }
+
+    public void TestNewJsonClass()
+    {
+        PositionMessage msg = new PositionMessage(player.GetId().ToString(), player.transform.position);
+        Debug.Log("ID:" + player.GetId());
+        Debug.Log("As json: " + msg.ToJson());
+        Debug.Log("Parsed back from Json: Type: " + PositionMessage.FromJson(msg.ToJson()).type 
+            +  " and Id" + PositionMessage.FromJson(msg.ToJson()).guid 
+            + " " + PositionMessage.FromJson(msg.ToJson()).position);
+        Debug.Log("Converted to base class: " + WebsocketMessage.FromJson(msg.ToJson()).type);
+    }
+#endregion
 
     protected virtual void Start()
     {
@@ -65,16 +96,15 @@ public class NetworkManager : MonoBehaviour
         {
             ProcessMessage(Encoding.UTF8.GetString(msg));
         };
-        new SyncedStrings(behaviour);
-        new SyncedFloats(behaviour);
-        TestSyncVar();
+        new SyncedStrings(behaviour, Guid.NewGuid());
+        new SyncedFloats(behaviour, Guid.NewGuid());
         score = new SyncFloat("score", 0);
-        Debug.Log("Created syncfloat with name " + score.CallName);
+        Debug.Log("Finished Set Up");
     }
 
     protected virtual void SendPlayerPos()
     {
-        if (behaviour != null && player.IsReady())
+        /*if (behaviour != null && player.IsReady())
         {
             float x = player.transform.position.x;
             float y = player.transform.position.y;
@@ -83,11 +113,21 @@ public class NetworkManager : MonoBehaviour
             //if(debug) Debug.Log("Sending " + msg);
             behaviour.Send(msg);
             lastFramePos = player.transform.position;
+        }*/
+        if (behaviour != null && player.IsReady())
+        {
+            if(debug) Debug.Log("Sending Position");
+            PositionMessage temp = new PositionMessage(player.GetId(), player.transform.position);
+            string msg = JsonUtility.ToJson(temp);
+            behaviour.Send(msg);
+            lastFramePos = player.transform.position;
+            if (debug) Debug.Log("Finisehed sending Player Pos");
         }
     }
 
     protected virtual IEnumerator UpdateOnlinePlayerPosition(Guid key)
     {
+        if(debug) Debug.Log("Updating online player position");
         Vector3 targetPos = onlinePlayers[key];
         GameObject targetObject;
         // Update positon
@@ -114,28 +154,29 @@ public class NetworkManager : MonoBehaviour
 
     protected virtual void ProcessMessage(string msg)
     {
+        #region old procedure
         // If the message is about the players new ID
-        if(readyForId && msg.Contains("ID"))
+        if (readyForId && msg.Contains("ID:"))
         {
-            var parts = msg.Split(":".ToCharArray());
-            for(int i = parts.Length; i <= 0; i--)
+            //var parts = msg.Split(":".ToCharArray());
+            /*for(int i = parts.Length; i <= 0; i--)
             {
                 Debug.Log("part " + i + ": " + parts[i-1]);
-            }
-            Guid newId = Guid.Parse(parts[1]);
-            player.SetId(newId);
-            SendPlayerPos(); // notify the server abut our position
+            }*/
+            //Guid newId = Guid.Parse(parts[1]);
+            //player.SetId(newId);
+            //SendPlayerPos(); // notify the server abut our position
         }
         else if(msg.Contains("Update")) // The server is aksing for an update on this players position
         {
-            SendPlayerPos();
+            //SendPlayerPos();
         }
-        else if (msg.Contains("Sync")) // The server is aksing for an update on this players position
+        /*else if (msg.Contains("Sync")) // The server is aksing for an update on this players position
         {
-            Debug.Log("Got syncvar message:" + msg);
+            //Debug.Log("Got syncvar message:" + msg);
             if (msg.Contains("SyncString")) SyncString.Parse(msg);
             else if (msg.Contains("SyncFloat")) SyncFloat.Parse(msg);
-        }
+        }*/
         else if(msg.Contains("Pos:"))
         {
             var stringArray = msg.Split(":".ToCharArray());
@@ -169,17 +210,58 @@ public class NetworkManager : MonoBehaviour
                 StartCoroutine(UpdateOnlinePlayerPosition(guid));
             }
         }
-    }
+        #endregion
+        IDMessage temp = IDMessage.FromJson(msg);
+        if (debug) Debug.Log("From Json: guid " + temp.guid + " and type " + temp.type);
+        // Ignore, if the message is about this player
+        if(player.IsReady())
+        {            
+            if (temp.Guid == player.GetId())
+            {
+                if (debug) Debug.Log("Recieved message about me");
+                return;
+            }
+        }
 
-    private void TestSyncVar()
-    {
-        SyncString testString = new SyncString("MyTestString", "MyTestValue");
-        SyncFloat testFloat = new SyncFloat("MyTestFloat", 7.4f);
-        string tempS = testString.ToString();
-        string tempF = testFloat.ToString();
-        SyncString parsedS = SyncString.Parse(tempS);
-        SyncFloat parsedF = SyncFloat.Parse(tempF);
-        Debug.Log(SyncedStrings.Instance.GetCount() + " strings and " + SyncedFloats.Instance.GetCount() + " floats.");
+        switch (temp.type)
+        {
+            case WebsocketMessageType.ID:
+                if(readyForId)
+                {
+                    IDMessage iDMessage = IDMessage.FromJson(msg);
+                    player.SetId(iDMessage.Guid);
+                    SyncedStrings.Instance.playerID = iDMessage.Guid;
+                    SyncedFloats.Instance.playerID = iDMessage.Guid;
+                    if (debug) Debug.Log("New Id");
+                    SendPlayerPos();
+                }
+                break;
+            case WebsocketMessageType.Position:
+                PositionMessage positionMessage = PositionMessage.FromJson(msg);
+                if (onlinePlayers.ContainsKey(positionMessage.Guid))
+                {
+                    onlinePlayers[positionMessage.Guid] = positionMessage.position;
+                }
+                else
+                {
+                    // Add new player
+                    onlinePlayers.Add(positionMessage.Guid, positionMessage.position);
+                    // add new object for new player
+                    GameObject obj = null;
+                    onlinePlayerObjects.Add(positionMessage.Guid, obj);
+                    if (debug) Debug.Log("new online player with pos: " + positionMessage.position);
+                }
+                StartCoroutine(UpdateOnlinePlayerPosition(positionMessage.Guid));
+                break;
+            case WebsocketMessageType.SyncString:
+                SyncString.FromJson(msg);
+                break;
+            case WebsocketMessageType.SyncFloat:
+                SyncFloat.FromJson(msg);
+                break;
+            case WebsocketMessageType.Request:
+                break;
+        }
     }
 }
 

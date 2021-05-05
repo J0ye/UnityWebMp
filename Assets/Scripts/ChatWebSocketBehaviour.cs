@@ -24,7 +24,7 @@ public class ChatWebSocketBehaviour : BasicBehaviour
         ws.OnOpen += () =>
         {
             Debug.Log("Connected to chat!");
-            Debug.Log("Chat state: " + ws.GetState().ToString());
+            if (isDebug)  Debug.Log("Chat state: " + ws.GetState().ToString());
             connected = true;
         };
 
