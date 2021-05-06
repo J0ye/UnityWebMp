@@ -32,13 +32,13 @@ public class BasicBehaviour : MonoBehaviour
         // Add OnError event listener
         ws.OnError += (string errMsg) =>
         {
-            Debug.Log("Chat error: " + errMsg);
+            Debug.Log("Connection error: " + errMsg);
         };
 
         // Add OnClose event listener
         ws.OnClose += (WebSocketCloseCode code) =>
         {
-            Debug.Log("Chat closed with code: " + code.ToString());
+            Debug.Log("Connection closed with code: " + code.ToString());
         };
 
         // Connect to the server

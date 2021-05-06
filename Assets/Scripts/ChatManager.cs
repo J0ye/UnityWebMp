@@ -42,7 +42,6 @@ public class ChatManager : MonoBehaviour
 
     public void ProcessMessage(string msg)
     {
-        Debug.Log("Processing: " + msg);
         foreach(GameObject go in displayedMessages)
         {
             Vector3 pos = go.GetComponent<RectTransform>().localPosition;

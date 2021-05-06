@@ -35,6 +35,16 @@ namespace Msg
             type = WebsocketMessageType.Request;
             requestType = request;
         }
+
+        public new static WebsocketRequest FromJson(string target)
+        {
+            return JsonUtility.FromJson<WebsocketRequest>(target);
+        }
+
+        public override string ToJson()
+        {
+            return JsonUtility.ToJson(this);
+        }
     }
 
     public class IDMessage : WebsocketMessage
