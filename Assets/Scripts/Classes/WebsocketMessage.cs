@@ -21,17 +21,19 @@ namespace Msg
         }
     }
 
-    public class WebsocketRequest : WebsocketMessage
+    public class WebsocketRequest : IDMessage
     {
         public WebsocketMessageType requestType;
 
         public WebsocketRequest()
         {
+            guid = Guid.NewGuid().ToString();
             type = WebsocketMessageType.Request;
         }
 
-        public WebsocketRequest(WebsocketMessageType request)
+        public WebsocketRequest(WebsocketMessageType request, Guid id)
         {
+            guid = id.ToString();
             type = WebsocketMessageType.Request;
             requestType = request;
         }

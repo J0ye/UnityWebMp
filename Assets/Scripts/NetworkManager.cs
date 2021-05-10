@@ -107,6 +107,7 @@ public class NetworkManager : MonoBehaviour
 
     protected virtual void SendPlayerPos()
     {
+        Debug.Log("Sending pos with " + behaviour + " and " + player.IsReady());
         if (behaviour != null && player.IsReady())
         {
             if (debug) Debug.Log("Sending Position");
@@ -148,64 +149,67 @@ public class NetworkManager : MonoBehaviour
     {
         try
         {
-            IDMessage temp = IDMessage.FromJson(msg);
-            if (debug) Debug.Log("From Json: guid " + temp.guid + " and type " + temp.type);
+            IDMessage target = IDMessage.FromJson(msg);
+            if (debug) Debug.Log("From Json: guid " + target.guid + " and type " + target.type);
             // Ignore, if the message is about this player
-            if (player.IsReady())
+            if (player.IsReady() || target.type == WebsocketMessageType.ID)
             {
-                if (temp.Guid == player.GetId())
+                if (target.Guid != player.GetId())
+                {
+                    ExecuteOnJson(target, msg);
+                } else
                 {
                     if (debug) Debug.Log("Recieved message about me");
-                    return;
                 }
             }
-            switch (temp.type)
-            {
-                case WebsocketMessageType.ID:
-                    if (readyForId)
-                    {
-                        IDMessage iDMessage = IDMessage.FromJson(msg);
-                        player.SetId(iDMessage.Guid);
-                        SyncedStrings.Instance.playerID = iDMessage.Guid;
-                        SyncedFloats.Instance.playerID = iDMessage.Guid;
-                        if (debug) Debug.Log("New Id");
-                    }
-                    break;
-                case WebsocketMessageType.Position:
-                    PositionMessage positionMessage = PositionMessage.FromJson(msg);
-                    if (onlinePlayers.ContainsKey(positionMessage.Guid))
-                    {
-                        onlinePlayers[positionMessage.Guid] = positionMessage.position;
-                    }
-                    else
-                    {
-                        // Add new player
-                        onlinePlayers.Add(positionMessage.Guid, positionMessage.position);
-                        // add new object for new player
-                        GameObject obj = null;
-                        onlinePlayerObjects.Add(positionMessage.Guid, obj);
-                        if (debug) Debug.Log("new online player with pos: " + positionMessage.position);
-                    }
-                    UpdateOnlinePlayerPosition(positionMessage.Guid);
-                    break;
-                case WebsocketMessageType.SyncString:
-                    SyncString.FromJson(msg);
-                    break;
-                case WebsocketMessageType.SyncFloat:
-                    SyncFloat.FromJson(msg);
-                    break;               
-            }
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
-            try
-            {
-                WebsocketRequest request = WebsocketRequest.FromJson(msg);
-                if (request.requestType == WebsocketMessageType.Position) SendPlayerPos();
-            } catch(Exception f)
-            {
-                Debug.Log("Error caught " + f + " for: " + msg);
-            }
-            //Fix. Very unclean
+            Debug.LogError("Error caught " + e + " for: " + msg);
+            return;
+        }
+    }
+
+    protected virtual void ExecuteOnJson(IDMessage iDMessage, string msg)
+    {
+        switch (iDMessage.type)
+        {
+            case WebsocketMessageType.ID:
+                if (readyForId)
+                {
+                    player.SetId(iDMessage.Guid);
+                    SyncedStrings.Instance.playerID = iDMessage.Guid;
+                    SyncedFloats.Instance.playerID = iDMessage.Guid;
+                    if (debug) Debug.Log("New Id");
+                }
+                break;
+            case WebsocketMessageType.Position:
+                PositionMessage positionMessage = PositionMessage.FromJson(msg);
+                if (onlinePlayers.ContainsKey(positionMessage.Guid))
+                {
+                    onlinePlayers[positionMessage.Guid] = positionMessage.position;
+                }
+                else
+                {
+                    // Add new player
+                    onlinePlayers.Add(positionMessage.Guid, positionMessage.position);
+                    // add new object for new player
+                    GameObject obj = null;
+                    onlinePlayerObjects.Add(positionMessage.Guid, obj);
+                    if (debug) Debug.Log("new online player with pos: " + positionMessage.position);
+                }
+                UpdateOnlinePlayerPosition(positionMessage.Guid);
+                break;
+            case WebsocketMessageType.Request:
+                WebsocketRequest req = WebsocketRequest.FromJson(msg);
+                if (req.requestType == WebsocketMessageType.Position) SendPlayerPos();
+                break;
+            case WebsocketMessageType.SyncString:
+                SyncString.FromJson(msg);
+                break;
+            case WebsocketMessageType.SyncFloat:
+                SyncFloat.FromJson(msg);
+                break;
         }
     }
 }
