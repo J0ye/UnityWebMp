@@ -139,4 +139,27 @@ namespace Msg
             this.floatValue = floatValue;
         }
     }
+
+    public class RPCMessage : IDMessage
+    {
+        public string procedureGuid;
+        public string procedureName;
+
+        public RPCMessage(Guid playerId, Guid procedureId, string procedure)
+        {
+            type = WebsocketMessageType.RPC;
+            guid = playerId.ToString();
+            procedureGuid = procedureId.ToString();
+            procedureName = procedure;
+        }
+
+        public override string ToJson()
+        {
+            return JsonUtility.ToJson(this);
+        }
+        public static new RPCMessage FromJson(string target)
+        {
+            return JsonUtility.FromJson<RPCMessage>(target);
+        }
+    }
 }
