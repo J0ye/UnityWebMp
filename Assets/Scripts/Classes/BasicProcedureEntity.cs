@@ -24,7 +24,10 @@ public class BasicProcedureEntity : MonoBehaviour
     {
         Invoke(procedureName, 0f);
         RPCMessage msg = new RPCMessage(manager.player.GetId(), Guid.Parse(id), procedureName);
-        if(behaviour != null) behaviour.Send(msg.ToJson());
+        if (behaviour == null && manager.behaviour != null) behaviour = manager.behaviour;
+
+        behaviour.Send(msg.ToJson());
+        Debug.Log("Sending via " + behaviour.adress + ": " + msg.ToJson());
     }
 
     public void SpawnTest()

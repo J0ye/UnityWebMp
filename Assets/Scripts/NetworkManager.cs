@@ -101,10 +101,6 @@ public class NetworkManager : MonoBehaviour
             ProcessMessage(Encoding.UTF8.GetString(msg));
         };
 
-        foreach(BasicProcedureEntity bpe in basicProcedureEntities.Values)
-        {
-            bpe.behaviour = behaviour;
-        }
         new SyncedStrings(behaviour, Guid.NewGuid());
         new SyncedFloats(behaviour, Guid.NewGuid());
         score = new SyncFloat("score", 0);
@@ -213,6 +209,7 @@ public class NetworkManager : MonoBehaviour
 
     private void FinishRPC(RPCMessage msg)
     {
+        Debug.Log("Recieved RPC call with: " + msg);
         Guid targetId = Guid.Parse(msg.procedureGuid);
         foreach(KeyValuePair<Guid, BasicProcedureEntity> bpe in basicProcedureEntities)
         {
