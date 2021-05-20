@@ -21,17 +21,19 @@ namespace Msg
         }
     }
 
-    public class WebsocketRequest : WebsocketMessage
+    public class WebsocketRequest : IDMessage
     {
         public WebsocketMessageType requestType;
 
         public WebsocketRequest()
         {
+            guid = Guid.NewGuid().ToString();
             type = WebsocketMessageType.Request;
         }
 
-        public WebsocketRequest(WebsocketMessageType request)
+        public WebsocketRequest(WebsocketMessageType request, Guid id)
         {
+            guid = id.ToString();
             type = WebsocketMessageType.Request;
             requestType = request;
         }
@@ -183,6 +185,29 @@ namespace Msg
             this.callName = callName;
             this.stringValue = stringValue;
             this.floatValue = floatValue;
+        }
+    }
+
+    public class RPCMessage : IDMessage
+    {
+        public string procedureGuid;
+        public string procedureName;
+
+        public RPCMessage(Guid playerId, Guid procedureId, string procedure)
+        {
+            type = WebsocketMessageType.RPC;
+            guid = playerId.ToString();
+            procedureGuid = procedureId.ToString();
+            procedureName = procedure;
+        }
+
+        public override string ToJson()
+        {
+            return JsonUtility.ToJson(this);
+        }
+        public static new RPCMessage FromJson(string target)
+        {
+            return JsonUtility.FromJson<RPCMessage>(target);
         }
     }
 }

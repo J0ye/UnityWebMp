@@ -14,8 +14,10 @@ public class NetworkManager : MonoBehaviour
     public float pingFrequency = 1f;
     public bool debug = false;
 
-    protected WebSocketBehaviour behaviour;
-    protected Dictionary<Guid, Vector3> onlinePlayers = new Dictionary<Guid, Vector3>();
+    [HideInInspector]
+    public WebSocketBehaviour behaviour;
+    public Dictionary<Guid, BasicProcedureEntity> basicProcedureEntities = new Dictionary<Guid, BasicProcedureEntity>();
+
     protected Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
     protected SyncFloat score;
     protected Vector3 lastFramePos = Vector3.zero;
@@ -71,7 +73,6 @@ public class NetworkManager : MonoBehaviour
     {
         StartCoroutine(SetUpSocket());
         lastFramePos = player.transform.position;
-        TestNewJsonClass();
     }
 
     protected void Update()
@@ -100,10 +101,10 @@ public class NetworkManager : MonoBehaviour
         {
             ProcessMessage(Encoding.UTF8.GetString(msg));
         };
+
         new SyncedStrings(behaviour, Guid.NewGuid());
         new SyncedFloats(behaviour, Guid.NewGuid());
         score = new SyncFloat("score", 0);
-        Debug.Log("Finished Set Up");
     }
 
     protected virtual void SendPlayerPos()
@@ -119,29 +120,33 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    protected virtual void UpdateOnlinePlayerPosition(Guid key)
+    protected virtual IEnumerator UpdateOnlinePlayer(PositionMessage pos)
     {
-        if(debug) Debug.Log("Updating online player position");
-        Vector3 targetPos = onlinePlayers[key];
-        GameObject targetObject;
-        // Update positon
-        if (onlinePlayerObjects[key] == null)
+        yield return 0;
+        if(!onlinePlayerObjects.ContainsKey(pos.Guid))
         {
-            onlinePlayerObjects[key] = Instantiate(onlinePlayerPrefab);
+            onlinePlayerObjects.Add(pos.Guid, Instantiate(onlinePlayerPrefab));
         }
 
-        targetObject = onlinePlayerObjects[key];
-
-        if (targetPos == new Vector3(-9999, -9999, -9999))
+        if (pos.position == new Vector3(-9999, -9999, -9999))
         {
             // The player is at the exit position.
-            Destroy(onlinePlayerObjects[key]);
-            onlinePlayerObjects.Remove(key);
-            onlinePlayers.Remove(key);
-        }
-        else if (targetObject.transform.position.Round(3) != targetPos.Round(3))
+            RemoveOnlinePlayer(pos.Guid);
+        } else
         {
-            targetObject.transform.position = targetPos;
+            onlinePlayerObjects[pos.Guid].transform.position = pos.position;
+        }
+    }
+
+    protected virtual void RemoveOnlinePlayer(Guid playerID)
+    {
+        try
+        {
+            Destroy(onlinePlayerObjects[playerID]);
+            onlinePlayerObjects.Remove(playerID);
+        } catch (Exception e)
+        {
+            Debug.LogError("Something went wrong while deleting an online player: " + e);
         }
     }
 
@@ -149,64 +154,70 @@ public class NetworkManager : MonoBehaviour
     {
         try
         {
-            IDMessage temp = IDMessage.FromJson(msg);
-            if (debug) Debug.Log("From Json: guid " + temp.guid + " and type " + temp.type);
+            IDMessage target = IDMessage.FromJson(msg);
+            if (debug) Debug.Log("From Json: guid " + target.guid + " and type " + target.type);
             // Ignore, if the message is about this player
-            if (player.IsReady())
+            if (player.IsReady() || target.type == WebsocketMessageType.ID)
             {
-                if (temp.Guid == player.GetId())
+                if (target.Guid != player.GetId())
+                {
+                    ExecuteOnJson(target, msg);
+                } else
                 {
                     if (debug) Debug.Log("Recieved message about me");
-                    return;
                 }
             }
-            switch (temp.type)
-            {
-                case WebsocketMessageType.ID:
-                    if (readyForId)
-                    {
-                        IDMessage iDMessage = IDMessage.FromJson(msg);
-                        player.SetId(iDMessage.Guid);
-                        SyncedStrings.Instance.playerID = iDMessage.Guid;
-                        SyncedFloats.Instance.playerID = iDMessage.Guid;
-                        if (debug) Debug.Log("New Id");
-                    }
-                    break;
-                case WebsocketMessageType.Position:
-                    PositionMessage positionMessage = PositionMessage.FromJson(msg);
-                    if (onlinePlayers.ContainsKey(positionMessage.Guid))
-                    {
-                        onlinePlayers[positionMessage.Guid] = positionMessage.position;
-                    }
-                    else
-                    {
-                        // Add new player
-                        onlinePlayers.Add(positionMessage.Guid, positionMessage.position);
-                        // add new object for new player
-                        GameObject obj = null;
-                        onlinePlayerObjects.Add(positionMessage.Guid, obj);
-                        if (debug) Debug.Log("new online player with pos: " + positionMessage.position);
-                    }
-                    UpdateOnlinePlayerPosition(positionMessage.Guid);
-                    break;
-                case WebsocketMessageType.SyncString:
-                    SyncString.FromJson(msg);
-                    break;
-                case WebsocketMessageType.SyncFloat:
-                    SyncFloat.FromJson(msg);
-                    break;               
-            }
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
-            try
+            Debug.LogError("Error caught " + e + " for: " + msg);
+            return;
+        }
+    }
+
+    protected virtual void ExecuteOnJson(IDMessage iDMessage, string msg)
+    {
+        switch (iDMessage.type)
+        {
+            case WebsocketMessageType.ID:
+                if (readyForId)
+                {
+                    player.SetId(iDMessage.Guid);
+                    SyncedStrings.Instance.playerID = iDMessage.Guid;
+                    SyncedFloats.Instance.playerID = iDMessage.Guid;
+                    if (debug) Debug.Log("New Id");
+                }
+                break;
+            case WebsocketMessageType.Position:
+                PositionMessage positionMessage = PositionMessage.FromJson(msg);
+                StartCoroutine(UpdateOnlinePlayer(positionMessage));
+                break;
+            case WebsocketMessageType.Request:
+                WebsocketRequest req = WebsocketRequest.FromJson(msg);
+                if (req.requestType == WebsocketMessageType.Position) SendPlayerPos();
+                break;
+            case WebsocketMessageType.SyncString:
+                SyncString.FromJson(msg);
+                break;
+            case WebsocketMessageType.SyncFloat:
+                SyncFloat.FromJson(msg);
+                break;
+            case WebsocketMessageType.RPC:
+                FinishRPC(RPCMessage.FromJson(msg));
+                break;
+        }
+    }
+
+    private void FinishRPC(RPCMessage msg)
+    {
+        Debug.Log("Recieved RPC call with: " + msg);
+        Guid targetId = Guid.Parse(msg.procedureGuid);
+        foreach(KeyValuePair<Guid, BasicProcedureEntity> bpe in basicProcedureEntities)
+        {
+            if(bpe.Key == targetId)
             {
-                WebsocketRequest request = WebsocketRequest.FromJson(msg);
-                if (request.requestType == WebsocketMessageType.Position) SendPlayerPos();
-            } catch(Exception f)
-            {
-                Debug.Log("Error caught " + f + " for: " + msg);
+                bpe.Value.Invoke(msg.procedureName, 0f);
             }
-            //Fix. Very unclean
         }
     }
 }
