@@ -11,7 +11,16 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/2DMp.unity
     guid: 792a07abdc551544a98631186b146c35
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/3DMp.unity
     guid: 0f94a7efe7b401842a8c4c86e98c5a0d
-  m_configObjects: {}
+  - enabled: 1
+    path: Assets/WebXR/Samples/Desert/WebXR.unity
+    guid: 62764e63b9bc64baaaf251014195be42
+  m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: abf29a1dc62fb184d98c892e6089cd7c,
+      type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: fa9c0f7347709de4488544039e4979ef,
+      type: 2}
+    xr.sdk.mock-hmd.settings: {fileID: 11400000, guid: 9218f2e9a57e5a4439b15d9b95eceedb,
+      type: 2}
