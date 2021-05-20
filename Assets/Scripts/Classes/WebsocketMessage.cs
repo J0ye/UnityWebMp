@@ -119,6 +119,54 @@ namespace Msg
         }
     }
 
+    public class TransformMessage : IDMessage
+    {
+        public Vector3 position;
+        public Vector3 scale;
+        public Quaternion rotation;
+
+        public TransformMessage()
+        {
+            type = WebsocketMessageType.Position;
+        }
+        public TransformMessage(Guid id, Vector3 pos, Vector3 sca, Quaternion rot)
+        {
+            type = WebsocketMessageType.Position;
+            SetGuid(id.ToString());
+            position = pos;
+            scale = sca;
+            rotation = rot;
+        }
+
+        public TransformMessage(string id, Vector3 pos, Vector3 sca, Quaternion rot)
+        {
+            type = WebsocketMessageType.Position;
+            SetGuid(id);
+            position = pos;
+            scale = sca;
+            rotation = rot;
+        }
+
+        public TransformMessage(Guid id, Transform target)
+        {
+            type = WebsocketMessageType.Position;
+            SetGuid(id.ToString());
+            position = target.position;
+            scale = target.localScale;
+            rotation = target.rotation;
+        }
+
+        public static new TransformMessage FromJson(string target)
+        {
+            return JsonUtility.FromJson<TransformMessage>(target);
+        }
+
+        public override string ToJson()
+        {
+            return JsonUtility.ToJson(this);
+        }
+    }
+
     public class SyncVarMessage : IDMessage
     {
         public string callName;

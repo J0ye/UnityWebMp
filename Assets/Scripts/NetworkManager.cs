@@ -56,12 +56,13 @@ public class NetworkManager : MonoBehaviour
 
     public void TestNewJsonClass()
     {
-        PositionMessage msg = new PositionMessage(player.GetId().ToString(), player.transform.position);
+        //PositionMessage msg = new PositionMessage(player.GetId().ToString(), player.transform.position);
+        TransformMessage msg = new TransformMessage(player.GetId(), player.transform);
         Debug.Log("ID:" + player.GetId());
         Debug.Log("As json: " + msg.ToJson());
-        Debug.Log("Parsed back from Json: Type: " + PositionMessage.FromJson(msg.ToJson()).type 
-            +  " and Id" + PositionMessage.FromJson(msg.ToJson()).guid 
-            + " " + PositionMessage.FromJson(msg.ToJson()).position);
+        TransformMessage b = TransformMessage.FromJson(msg.ToJson());
+        Debug.Log("Parsed back from Json: Type: " + b.type +  " and Id" + b.guid 
+            + " " + b.position);
         Debug.Log("Converted to base class: " + WebsocketMessage.FromJson(msg.ToJson()).type);
     }
 #endregion
@@ -70,7 +71,7 @@ public class NetworkManager : MonoBehaviour
     {
         StartCoroutine(SetUpSocket());
         lastFramePos = player.transform.position;
-        Debug.Log(new PositionMessage(Guid.NewGuid(), transform.position).ToJson());
+        TestNewJsonClass();
     }
 
     protected void Update()
