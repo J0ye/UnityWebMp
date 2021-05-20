@@ -57,7 +57,7 @@ public class Player : MonoBehaviour
     public Guid GetId()
     {
         if (!setUp)
-            Debug.LogError("Guid is not set up and can not be read.");
+            return Guid.Empty;
 
         return guid;
     }

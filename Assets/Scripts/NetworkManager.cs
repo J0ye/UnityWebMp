@@ -60,12 +60,14 @@ public class NetworkManager : MonoBehaviour
     {
         //PositionMessage msg = new PositionMessage(player.GetId().ToString(), player.transform.position);
         TransformMessage msg = new TransformMessage(player.GetId(), player.transform);
-        Debug.Log("ID:" + player.GetId());
         Debug.Log("As json: " + msg.ToJson());
         TransformMessage b = TransformMessage.FromJson(msg.ToJson());
-        Debug.Log("Parsed back from Json: Type: " + b.type +  " and Id" + b.guid 
+        Debug.Log("Parsed back from Json: Type: " + b.type +  " and rotation" + b.rotation
             + " " + b.position);
-        Debug.Log("Converted to base class: " + WebsocketMessage.FromJson(msg.ToJson()).type);
+        PositionMessage pm = PositionMessage.FromJson(msg.ToJson());
+        Debug.Log("Converted to position: " + pm.position);
+        TransformMessage temp = (TransformMessage)pm;
+        Debug.Log("Cast as from position" + temp.position);
     }
 #endregion
 
@@ -80,7 +82,7 @@ public class NetworkManager : MonoBehaviour
         if (debug) Debug.Log("Comparing " + lastFramePos.Round(1) + " with " + player.transform.position.Round(1));
         if(lastFramePos.Round(1) != player.transform.position.Round(1))
         {
-            SendPlayerPos();
+            SendTransform();
         }
     }
 
@@ -120,22 +122,46 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    protected virtual IEnumerator UpdateOnlinePlayer(PositionMessage pos)
+    protected virtual void SendTransform()
     {
-        yield return 0;
-        if(!onlinePlayerObjects.ContainsKey(pos.Guid))
+        if (behaviour == null || !player.IsReady())
         {
-            onlinePlayerObjects.Add(pos.Guid, Instantiate(onlinePlayerPrefab));
+            return;
         }
 
-        if (pos.position == new Vector3(-9999, -9999, -9999))
+        if (debug) Debug.Log("Sending Position");
+        TransformMessage temp = new TransformMessage(player.GetId(), player.transform);
+        string msg = JsonUtility.ToJson(temp);
+        behaviour.Send(msg);
+        lastFramePos = player.transform.position;
+        if (debug) Debug.Log("Finisehed sending Player Pos");        
+    }
+
+    /// <summary>
+    /// Updates the existence of an online players local avatar.
+    /// This hase to be an IEnumerator, so it can be processed in another thread.
+    /// Same thread would crash the OnMessageRecieved event of the websocket.
+    /// </summary>
+    /// <param name="update">New values</param>
+    /// <returns></returns>
+    protected virtual IEnumerator UpdateOnlinePlayer(TransformMessage update)
+    {
+        if(!onlinePlayerObjects.ContainsKey(update.Guid))
+        {
+            onlinePlayerObjects.Add(update.Guid, Instantiate(onlinePlayerPrefab));
+        }
+
+        if (update.position == new Vector3(-9999, -9999, -9999))
         {
             // The player is at the exit position.
-            RemoveOnlinePlayer(pos.Guid);
+            RemoveOnlinePlayer(update.Guid);
         } else
         {
-            onlinePlayerObjects[pos.Guid].transform.position = pos.position;
+            onlinePlayerObjects[update.Guid].transform.DOMove(update.position, pingFrequency / 2, false);
+            onlinePlayerObjects[update.Guid].transform.DOLocalRotateQuaternion(update.rotation, pingFrequency / 2);
+            onlinePlayerObjects[update.Guid].transform.DOScale(update.scale, pingFrequency / 2);
         }
+        yield return 0;
     }
 
     protected virtual void RemoveOnlinePlayer(Guid playerID)
@@ -190,7 +216,11 @@ public class NetworkManager : MonoBehaviour
                 break;
             case WebsocketMessageType.Position:
                 PositionMessage positionMessage = PositionMessage.FromJson(msg);
-                StartCoroutine(UpdateOnlinePlayer(positionMessage));
+                StartCoroutine(UpdateOnlinePlayer((TransformMessage)positionMessage));
+                break;
+            case WebsocketMessageType.Transform:
+                TransformMessage transformMessage = TransformMessage.FromJson(msg);
+                StartCoroutine(UpdateOnlinePlayer(transformMessage));
                 break;
             case WebsocketMessageType.Request:
                 WebsocketRequest req = WebsocketRequest.FromJson(msg);

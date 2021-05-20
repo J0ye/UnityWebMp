@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Msg
 {
-    public enum WebsocketMessageType { Request, Position, Chat, ID, SyncString, SyncFloat, RPC }
+    public enum WebsocketMessageType { Request, Position, Chat, ID, SyncString, SyncFloat, RPC, Transform }
     public class WebsocketMessage
     {
         public WebsocketMessageType type;
@@ -127,35 +127,71 @@ namespace Msg
         public Vector3 scale;
         public Quaternion rotation;
 
+        public static explicit operator TransformMessage(PositionMessage p) => new TransformMessage(p);
+
+        /// <summary>
+        /// Empty Constructor
+        /// </summary>
         public TransformMessage()
         {
-            type = WebsocketMessageType.Position;
+            type = WebsocketMessageType.Transform;
         }
+        /// <summary>
+        /// Standard constructor, that will convert target id to string.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="pos"></param>
+        /// <param name="sca"></param>
+        /// <param name="rot"></param>
         public TransformMessage(Guid id, Vector3 pos, Vector3 sca, Quaternion rot)
         {
-            type = WebsocketMessageType.Position;
+            type = WebsocketMessageType.Transform;
             SetGuid(id.ToString());
             position = pos;
             scale = sca;
             rotation = rot;
         }
 
+        /// <summary>
+        /// Standard constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="pos"></param>
+        /// <param name="sca"></param>
+        /// <param name="rot"></param>
         public TransformMessage(string id, Vector3 pos, Vector3 sca, Quaternion rot)
         {
-            type = WebsocketMessageType.Position;
+            type = WebsocketMessageType.Transform;
             SetGuid(id);
             position = pos;
             scale = sca;
             rotation = rot;
         }
-
+        /// <summary>
+        /// Quick constructor. Converts target transform into message)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="target"></param>
         public TransformMessage(Guid id, Transform target)
         {
-            type = WebsocketMessageType.Position;
+            type = WebsocketMessageType.Transform;
             SetGuid(id.ToString());
             position = target.position;
             scale = target.localScale;
             rotation = target.rotation;
+        }
+
+        /// <summary>
+        /// Quick constructor to parse PositionMessage into TransformMessage
+        /// </summary>
+        /// <param name="target"></param>
+        public TransformMessage(PositionMessage target)
+        {
+            type = WebsocketMessageType.Transform;
+            SetGuid(target.guid);
+            position = target.position;
+            scale = new Vector3(-9999, -9999, -9999);
+            rotation = new Quaternion(-9999, -9999, -9999, -9999);
         }
 
         public static new TransformMessage FromJson(string target)
