@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Msg;
+using System.Text;
 
 public class SyncedEntity : MonoBehaviour
 {
@@ -11,6 +13,11 @@ public class SyncedEntity : MonoBehaviour
     public bool isOnline = true;
     [HideInInspector]
     public string guid;
+
+    public virtual void Start()
+    {
+        StartCoroutine(RegisterOnMessageEvent());
+    }
 
     public void Send(string msg)
     {
@@ -45,6 +52,47 @@ public class SyncedEntity : MonoBehaviour
             return;
         }
         Debug.LogError("Failed to parse new ID for " + gameObject.name);
+    }
+
+    protected IEnumerator RegisterOnMessageEvent()
+    {
+        Func<bool> tempFunc = () => WebSocketStatus();
+        yield return new WaitWhile(tempFunc);
+
+        WebSocketBehaviour.instance.GetWS().OnMessage += (byte[] msg) =>
+        {
+            ProcessMessage(Encoding.UTF8.GetString(msg));
+        };
+
+        if (isDebug) Debug.Log("Registered OnMessage event");
+    }
+
+    protected void ProcessMessage(string msg)
+    {
+        try
+        {
+            IDMessage target = IDMessage.FromJson(msg);
+            if(target.guid == guid)
+            {
+                TransformMessage message = TransformMessage.FromJson(msg);
+                RecieveValues(message);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error caught " + e + " for: " + msg + " on " + gameObject.name);
+            return;
+        }
+    }
+
+    protected virtual void RecieveValues(TransformMessage msg)
+    {
+        Debug.Log("Excuted base function for recieve value");
+    }
+
+    protected bool WebSocketStatus()
+    {
+        return WebSocketBehaviour.instance != null;
     }
 }
 

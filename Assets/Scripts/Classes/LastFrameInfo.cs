@@ -45,6 +45,13 @@ public struct LastFrameInfo
         scale = target.localScale;
         rotation = target.rotation;
     }
+
+    public void UpdateValues(LastFrameInfo target)
+    {
+        position = target.position;
+        scale = target.scale;
+        rotation = target.rotation;
+    }
 }
 
 //###################################################################################################################################################################################################################################################

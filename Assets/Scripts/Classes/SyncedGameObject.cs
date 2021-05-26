@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Msg;
+using DG.Tweening;
 
 public class SyncedGameObject : SyncedEntity
 {
@@ -9,8 +10,9 @@ public class SyncedGameObject : SyncedEntity
 
     protected LastFrameInfo lastFrame;
 
-    void Start()
+    public override void Start()
     {
+        base.Start();
         lastFrame = new LastFrameInfo(transform);
     }
 
@@ -33,5 +35,22 @@ public class SyncedGameObject : SyncedEntity
         TransformMessage msg = new TransformMessage(guid, transform);
         Send(msg.ToJson());
         if (isDebug) Debug.Log("Updated values on server");
+    }
+
+    protected override void RecieveValues(TransformMessage msg)
+    {
+        LastFrameInfo temp = new LastFrameInfo();
+        temp.position = msg.position;
+        temp.scale = msg.scale;
+        temp.rotation = msg.rotation;
+
+        if(!temp.CompareValues(transform, 1))
+        {
+            //Only update the values if they are different
+            transform.DOMove(msg.position, 0.01f);
+            transform.DOScale(msg.scale, 0.01f);
+            transform.DORotateQuaternion(msg.rotation, 0.01f);
+            lastFrame.UpdateValues(temp);
+        }
     }
 }
