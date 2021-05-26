@@ -182,6 +182,29 @@ namespace Msg
         }
 
         /// <summary>
+        /// Quick constructor. Converts target transform into message. Will also try to convert a string into Guid.
+        /// It will throw an error, if it is unable to parse the string called it.
+        /// </summary>
+        /// <param name="id">Guid as a string for this message</param>
+        /// <param name="target">Target values to convert to a message</param>
+        public TransformMessage(string id, Transform target)
+        {
+            Guid temp;
+
+            type = WebsocketMessageType.Transform;
+            if (Guid.TryParse(id, out temp))
+            {
+                SetGuid(id);
+            } else
+            {
+                Debug.LogError("Could not parse " + id + " into a Guid. Cannot create a message for " + target);
+            }
+            position = target.position;
+            scale = target.localScale;
+            rotation = target.rotation;
+        }
+
+        /// <summary>
         /// Quick constructor to parse PositionMessage into TransformMessage
         /// </summary>
         /// <param name="target"></param>

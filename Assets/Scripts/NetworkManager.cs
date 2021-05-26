@@ -20,7 +20,7 @@ public class NetworkManager : MonoBehaviour
 
     protected Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
     protected SyncFloat score;
-    protected Vector3 lastFramePos = Vector3.zero;
+    protected LastFrameInfo lastFrame;
     protected bool readyForId = false;
 
     public void UpScore()
@@ -74,13 +74,13 @@ public class NetworkManager : MonoBehaviour
     protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
-        lastFramePos = player.transform.position;
+        lastFrame = new LastFrameInfo(transform);
     }
 
-    protected void Update()
+    protected void LateUpdate()
     {
-        if (debug) Debug.Log("Comparing " + lastFramePos.Round(1) + " with " + player.transform.position.Round(1));
-        if(lastFramePos.Round(1) != player.transform.position.Round(1))
+        if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.transform.position.Round(1));
+        if(lastFrame.position.Round(1) != player.transform.position.Round(1))
         {
             SendTransform();
         }
@@ -109,19 +109,6 @@ public class NetworkManager : MonoBehaviour
         score = new SyncFloat("score", 0);
     }
 
-    protected virtual void SendPlayerPos()
-    {
-        if (behaviour != null && player.IsReady())
-        {
-            if (debug) Debug.Log("Sending Position");
-            PositionMessage temp = new PositionMessage(player.GetId(), player.transform.position);
-            string msg = JsonUtility.ToJson(temp);
-            behaviour.Send(msg);
-            lastFramePos = player.transform.position;
-            if (debug) Debug.Log("Finisehed sending Player Pos");
-        }
-    }
-
     protected virtual void SendTransform()
     {
         if (behaviour == null || !player.IsReady())
@@ -133,7 +120,7 @@ public class NetworkManager : MonoBehaviour
         TransformMessage temp = new TransformMessage(player.GetId(), player.transform);
         string msg = JsonUtility.ToJson(temp);
         behaviour.Send(msg);
-        lastFramePos = player.transform.position;
+        lastFrame.UpdateValues(player.transform);
         if (debug) Debug.Log("Finisehed sending Player Pos");        
     }
 
@@ -224,7 +211,7 @@ public class NetworkManager : MonoBehaviour
                 break;
             case WebsocketMessageType.Request:
                 WebsocketRequest req = WebsocketRequest.FromJson(msg);
-                if (req.requestType == WebsocketMessageType.Position) SendPlayerPos();
+                if (req.requestType == WebsocketMessageType.Position) SendTransform();
                 break;
             case WebsocketMessageType.SyncString:
                 SyncString.FromJson(msg);
@@ -251,65 +238,3 @@ public class NetworkManager : MonoBehaviour
         }
     }
 }
-
-// Adds .Round() to any Vector3
-static class ExtensionMethods
-{
-    /// <summary>
-    /// Rounds Vector3.
-    /// </summary>
-    /// <param name="vector3"></param>
-    /// <param name="decimalPlaces"></param>
-    /// <returns></returns>
-    public static Vector3 Round(this Vector3 vector3, int decimalPlaces = 2)
-    {
-        float multiplier = 1;
-        for (int i = 0; i < decimalPlaces; i++)
-        {
-            multiplier *= 10f;
-        }
-        return new Vector3(
-            Mathf.Round(vector3.x * multiplier) / multiplier,
-            Mathf.Round(vector3.y * multiplier) / multiplier,
-            Mathf.Round(vector3.z * multiplier) / multiplier);
-    }
-}
-
-
-
-
-/*
- * 
-        else if(msg.Contains("Pos:"))
-        {
-            var stringArray = msg.Split(":".ToCharArray());
-            stringArray = stringArray[1].Split("/".ToCharArray());
-            string x = stringArray[0];
-            string y = stringArray[1];
-            string z = stringArray[2];
-            string id = stringArray[3];
-
-            Guid guid = Guid.Parse(id);
-            // Only work on the data if it isnt this players data, that was send back
-            if(guid != player.GetId())
-            {
-                float xPos = float.Parse(x);
-                float yPos = float.Parse(y);
-                float zPos = float.Parse(z);
-                Vector3 newPos = new Vector3(xPos, yPos, zPos);
-                if (onlinePlayers.ContainsKey(guid))
-                {
-                    onlinePlayers[guid] = newPos;
-                }
-                else
-                {
-                    // Add new player
-                    onlinePlayers.Add(guid, newPos);
-                    // add new object for new player
-                    GameObject obj = null;
-                    onlinePlayerObjects.Add(guid, obj);
-                    if (debug) Debug.Log("new online player with pos: " + newPos);
-                }
-                UpdateOnlinePlayerPosition(guid);
-            }
-        }*/

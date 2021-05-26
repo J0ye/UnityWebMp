@@ -12,13 +12,13 @@ public class BasicProcedureEntity : SyncedEntity
     // Start is called before the first frame update
     void Start()
     {
-        manager.basicProcedureEntities.Add(Guid.Parse(id), this);
+        manager.basicProcedureEntities.Add(System.Guid.Parse(guid), this);
     }
 
     public void MakeRPC(string procedureName)
     {
         Invoke(procedureName, 0f);
-        RPCMessage msg = new RPCMessage(manager.player.GetId(), Guid.Parse(id), procedureName);
+        RPCMessage msg = new RPCMessage(manager.player.GetId(), System.Guid.Parse(guid), procedureName);
         Sync(msg);        
     }
 

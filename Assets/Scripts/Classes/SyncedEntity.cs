@@ -7,14 +7,21 @@ using UnityEngine;
 public class SyncedEntity : MonoBehaviour
 {
     public bool isDebug = false;
-    [HideInInspector]
-    public string id { get => id; protected set => id = value; }
+    [Tooltip("This synced entity will only be updated on the server if this member is set to true")]
+    public bool isOnline = true;
+    public string guid { get => guid; set => guid = value; } // Access for guid member
 
     public void Send(string msg)
     {
         try
         {
-            WebSocketBehaviour.instance.Send(msg);
+            if(isOnline)
+            {
+                WebSocketBehaviour.instance.Send(msg);
+            } else
+            {
+                if (isDebug) Debug.Log(gameObject.name + " is trying to send a message, but is currently offline");
+            }
             if(isDebug) Debug.Log("Sending via " + WebSocketBehaviour.instance.adress + ": " + msg);
         }
         catch (Exception e)
@@ -25,22 +32,22 @@ public class SyncedEntity : MonoBehaviour
 
     public void SetRandomGuid()
     {
-        id = Guid.NewGuid().ToString();
+        this.guid = System.Guid.NewGuid().ToString();
     }
 
     public void SetGuid(string newID)
     {
         Guid temp;
-        if(Guid.TryParse(newID, out temp))
+        if(System.Guid.TryParse(newID, out temp))
         {
-            this.id = newID;
+            this.guid = newID;
             return;
         }
-        Debug.LogError("Failed to parse new ID for synced entity");
+        Debug.LogError("Failed to parse new ID for " + gameObject.name);
     }
 }
 
-/*
+
 // Custom Editor 
 [CustomEditor(typeof(SyncedEntity), true)]
 public class CustomSyncedEntityInfo : Editor
@@ -50,10 +57,10 @@ public class CustomSyncedEntityInfo : Editor
         SyncedEntity script = (SyncedEntity)target;
         DrawDefaultInspector();
 
-        EditorGUILayout.LabelField("ID", script.id);
+        EditorGUILayout.LabelField("ID", script.guid);
         if (GUILayout.Button("New Id"))
         {
             script.SetRandomGuid();
         }
     }
-}*/
+}
