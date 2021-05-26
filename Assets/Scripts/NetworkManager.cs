@@ -139,7 +139,7 @@ public class NetworkManager : MonoBehaviour
 
     /// <summary>
     /// Updates the existence of an online players local avatar.
-    /// This hase to be an IEnumerator, so it can be processed in another thread.
+    /// This has to be an IEnumerator, so it can be processed in another thread.
     /// Same thread would crash the OnMessageRecieved event of the websocket.
     /// </summary>
     /// <param name="update">New values</param>

@@ -4,15 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Msg;
 
-public class BasicProcedureEntity : MonoBehaviour
+public class BasicProcedureEntity : SyncedEntity
 {
     public NetworkManager manager;
     public GameObject testItem;
-
-    [HideInInspector]
-    public WebSocketBehaviour behaviour;
-    [HideInInspector]
-    public string id;
 
     // Start is called before the first frame update
     void Start()
@@ -24,10 +19,19 @@ public class BasicProcedureEntity : MonoBehaviour
     {
         Invoke(procedureName, 0f);
         RPCMessage msg = new RPCMessage(manager.player.GetId(), Guid.Parse(id), procedureName);
-        if (behaviour == null && manager.behaviour != null) behaviour = manager.behaviour;
+        Sync(msg);        
+    }
 
-        behaviour.Send(msg.ToJson());
-        Debug.Log("Sending via " + behaviour.adress + ": " + msg.ToJson());
+    private void Sync(RPCMessage msg)
+    {
+        try
+        {
+            Send(msg.ToJson());
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Could not make RPC called " + msg.procedureName + ". Error: " + e);
+        }
     }
 
     public void SpawnTest()
@@ -37,10 +41,5 @@ public class BasicProcedureEntity : MonoBehaviour
             GameObject canvas = GameObject.Find("Canvas");
             Instantiate(testItem, canvas.transform);
         }
-    }
-
-    public void SetNewGuid()
-    {
-        id = Guid.NewGuid().ToString();
     }
 }

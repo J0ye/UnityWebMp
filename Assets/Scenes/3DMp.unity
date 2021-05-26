@@ -2552,6 +2552,7 @@ MonoBehaviour:
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
+  m_ShouldActivateOnSelect: 1
 --- !u!114 &710969562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4121,7 +4122,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1790096809}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.34714115, y: 0.4087124, z: 0.17168096, w: 0.8264218}
   m_LocalPosition: {x: 0, y: 2.31, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -4129,7 +4130,7 @@ Transform:
   - {fileID: 1904702520}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -45.57, y: 52.63, z: 0}
 --- !u!114 &1790096814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4426,6 +4427,7 @@ MonoBehaviour:
   testItem: {fileID: 5792275575177655577, guid: cd2ee2e018319ca43a58574ccb660f50,
     type: 3}
   behaviour: {fileID: 0}
+  id: 2b2314e3-ee7c-4848-91e6-13628b24ef68
 --- !u!114 &1807530499
 MonoBehaviour:
   m_ObjectHideFlags: 0
