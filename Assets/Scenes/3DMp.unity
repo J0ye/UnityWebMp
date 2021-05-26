@@ -2552,7 +2552,6 @@ MonoBehaviour:
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
-  m_ShouldActivateOnSelect: 1
 --- !u!114 &710969562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3704,8 +3703,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21637ea6a4fdb154f92344bae34c626a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDebug: 1
-  isOnline: 0
+  isDebug: 0
+  isOnline: 1
+  guid: a5dd9d01-f76c-4998-acfc-79f30ba7dc10
   comparisonrange: 2
 --- !u!54 &1540133875
 Rigidbody:

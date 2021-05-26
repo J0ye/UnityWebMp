@@ -9,7 +9,8 @@ public class SyncedEntity : MonoBehaviour
     public bool isDebug = false;
     [Tooltip("This synced entity will only be updated on the server if this member is set to true")]
     public bool isOnline = true;
-    public string guid { get => guid; set => guid = value; } // Access for guid member
+    [HideInInspector]
+    public string guid;
 
     public void Send(string msg)
     {
@@ -32,7 +33,7 @@ public class SyncedEntity : MonoBehaviour
 
     public void SetRandomGuid()
     {
-        this.guid = System.Guid.NewGuid().ToString();
+        guid = System.Guid.NewGuid().ToString();
     }
 
     public void SetGuid(string newID)
@@ -40,7 +41,7 @@ public class SyncedEntity : MonoBehaviour
         Guid temp;
         if(System.Guid.TryParse(newID, out temp))
         {
-            this.guid = newID;
+            guid = newID;
             return;
         }
         Debug.LogError("Failed to parse new ID for " + gameObject.name);
