@@ -2,25 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
+/// <summary>
+/// Unity PlayerController base class
+/// </summary>
 public class Player : MonoBehaviour
 {
     [Header("Input Settings")]
     public DPadInput visualInput;
     public List<KeyCode> movementKeys = new List<KeyCode>();
-    private Guid guid;
-    private bool setUp = false;
 
     protected virtual Vector3 GetInputAxis()
     {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        /*if( visualInput != null)
-        {
-            h = visualInput.vector.x;
-            v = visualInput.vector.y;
-        }*/
 
+        // calculate direction vectors based on orientation
         Vector3 forward = transform.forward * v;
         Vector3 sideways = transform.right * h;
         
@@ -43,27 +39,5 @@ public class Player : MonoBehaviour
         }
 
         return false;
-    }
-
-    public void SetId(Guid newId)
-    {
-        if (!setUp)
-        {
-            guid = newId;
-            setUp = true;
-        }
-    }
-
-    public Guid GetId()
-    {
-        if (!setUp)
-            return Guid.Empty;
-
-        return guid;
-    }
-
-    public bool IsReady()
-    {
-        return setUp;
     }
 }

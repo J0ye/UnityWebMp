@@ -21,7 +21,6 @@ public class NetworkManager : MonoBehaviour
     protected Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
     protected SyncFloat score;
     protected LastFrameInfo lastFrame;
-    protected bool readyForId = false;
 
     public void UpScore()
     {
@@ -48,18 +47,18 @@ public class NetworkManager : MonoBehaviour
         string tempF = testFloat.ToString();
         SyncString parsedS = SyncString.Parse(tempS);
         SyncFloat parsedF = SyncFloat.Parse(tempF);
-        Debug.Log("String as json: " + testString.ToJson(behaviour.GameID));
-        Debug.Log("And back to SyncVar " + SyncString.FromJson(testString.ToJson(behaviour.GameID)).CallName 
-            + " " + SyncString.FromJson(testString.ToJson(behaviour.GameID)).Value);
-        Debug.Log("Float as json: " + testFloat.ToJson(behaviour.GameID));
-        Debug.Log("And back to SyncVar " + SyncFloat.FromJson(testFloat.ToJson(behaviour.GameID)).CallName
-            + " " + SyncFloat.FromJson(testFloat.ToJson(behaviour.GameID)).Value);
+        Debug.Log("String as json: " + testString.ToJson(behaviour.ConnectionID));
+        Debug.Log("And back to SyncVar " + SyncString.FromJson(testString.ToJson(behaviour.ConnectionID)).CallName 
+            + " " + SyncString.FromJson(testString.ToJson(behaviour.ConnectionID)).Value);
+        Debug.Log("Float as json: " + testFloat.ToJson(behaviour.ConnectionID));
+        Debug.Log("And back to SyncVar " + SyncFloat.FromJson(testFloat.ToJson(behaviour.ConnectionID)).CallName
+            + " " + SyncFloat.FromJson(testFloat.ToJson(behaviour.ConnectionID)).Value);
     }
 
     public void TestNewJsonClass()
     {
         //PositionMessage msg = new PositionMessage(behaviour.GameID.ToString(), player.transform.position);
-        TransformMessage msg = new TransformMessage(behaviour.GameID, player.transform);
+        TransformMessage msg = new TransformMessage(behaviour.ConnectionID, player.transform);
         Debug.Log("As json: " + msg.ToJson());
         TransformMessage b = TransformMessage.FromJson(msg.ToJson());
         Debug.Log("Parsed back from Json: Type: " + b.type +  " and rotation" + b.rotation
@@ -88,17 +87,10 @@ public class NetworkManager : MonoBehaviour
 
     protected virtual IEnumerator SetUpSocket()
     {
-        while (WebSocketBehaviour.instance == null)
-        {
-            Debug.Log("Waiting for instance");
-            yield return new WaitForSeconds(0.5f);
-        }
+        Func<bool> tempFunc = () => WebSocketBehaviour.WebSocketStatus();
+        yield return new WaitWhile(tempFunc);
 
         behaviour = WebSocketBehaviour.instance;
-        behaviour.GetWS().OnOpen += () =>
-        {
-            readyForId = true;
-        };
         behaviour.GetWS().OnMessage += (byte[] msg) =>
         {
             ProcessMessage(Encoding.UTF8.GetString(msg));
@@ -111,13 +103,13 @@ public class NetworkManager : MonoBehaviour
 
     protected virtual void SendTransform()
     {
-        if (behaviour == null || !player.IsReady())
+        if (behaviour == null)
         {
             return;
         }
 
         if (debug) Debug.Log("Sending Position");
-        TransformMessage temp = new TransformMessage(behaviour.GameID, player.transform);
+        TransformMessage temp = new TransformMessage(behaviour.ConnectionID, player.transform);
         string msg = JsonUtility.ToJson(temp);
         behaviour.Send(msg);
         lastFrame.UpdateValues(player.transform);
@@ -170,7 +162,7 @@ public class NetworkManager : MonoBehaviour
             IDMessage target = IDMessage.FromJson(msg);
             if (debug) Debug.Log("From Json: guid " + target.guid + " and type " + target.type);
             // Ignore, if the message is about this game
-            if (target.Guid != behaviour.GameID && target.type != WebsocketMessageType.SyncedGameObject)
+            if (target.Guid != behaviour.ConnectionID && target.type != WebsocketMessageType.SyncedGameObject)
             {
                 ExecuteOnJson(target, msg);
             }
@@ -189,14 +181,10 @@ public class NetworkManager : MonoBehaviour
             switch (iDMessage.type)
             {
                 case WebsocketMessageType.ID:
-                    if (readyForId)
-                    {
-                        player.SetId(iDMessage.Guid);
-                        behaviour.GameID = iDMessage.Guid;
-                        SyncedStrings.Instance.gameID = iDMessage.Guid;
-                        SyncedFloats.Instance.gameID = iDMessage.Guid;
-                        if (debug) Debug.Log("New Id");
-                    }
+                    behaviour.ConnectionID = iDMessage.Guid;
+                    SyncedStrings.Instance.gameID = iDMessage.Guid;
+                    SyncedFloats.Instance.gameID = iDMessage.Guid;
+                    if (debug) Debug.Log("New Id");
                     break;
                 case WebsocketMessageType.Position:
                     PositionMessage positionMessage = PositionMessage.FromJson(msg);

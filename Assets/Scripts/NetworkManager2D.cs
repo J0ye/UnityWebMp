@@ -18,10 +18,6 @@ public class NetworkManager2D : NetworkManager
         }
 
         webSocket = WebSocket2DMp.instance;
-        webSocket.GetWS().OnOpen += () =>
-        {
-            readyForId = true;
-        };
         webSocket.GetWS().OnMessage += (byte[] msg) =>
         {
             ProcessMessage(Encoding.UTF8.GetString(msg));

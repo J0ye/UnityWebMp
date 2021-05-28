@@ -11,8 +11,8 @@ public class WebSocketBehaviour : BasicBehaviour
     public static WebSocketBehaviour instance;
     public bool isDebug = false;
 
-    protected Guid gameID;
-    public Guid GameID { get => gameID; set => gameID = value; }
+    protected Guid connectionID;
+    public Guid ConnectionID { get => connectionID; set => connectionID = value; }
 
     // Use this for initialization
     protected override void Start()
@@ -38,8 +38,6 @@ public class WebSocketBehaviour : BasicBehaviour
         {
             if(isDebug) Debug.Log("Base received message: " + Encoding.UTF8.GetString(msg));
         };
-
-        gameID = Guid.NewGuid();
     }
 
     protected virtual void OnApplicationQuit()
@@ -50,5 +48,10 @@ public class WebSocketBehaviour : BasicBehaviour
     public WebSocket GetWS()
     {
         return ws;
+    }
+
+    public static bool WebSocketStatus()
+    {
+        return WebSocketBehaviour.instance != null;
     }
 }

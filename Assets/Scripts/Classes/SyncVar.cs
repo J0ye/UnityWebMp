@@ -12,8 +12,6 @@ public class SyncVar
     private string callName;
 
     public virtual string CallName { get => callName; protected set => callName = value; }
-
-    protected virtual void SetCallName(string value) { }
 }
 
 public class SyncString : SyncVar

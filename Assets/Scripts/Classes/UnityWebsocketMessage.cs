@@ -141,8 +141,7 @@ namespace Msg
     public class SyncedGameObjectMessage : DoubleIDMessage
     {
         public string transformMessage;
-
-        protected TransformMessage transform = new TransformMessage();
+        public TransformMessage transform = new TransformMessage();
 
         /// <summary>
         /// Standard constructor, that will convert target id to string.

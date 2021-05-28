@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Msg;
 using DG.Tweening;
+using System;
 
 public class SyncedGameObject : SyncedEntity
 {
-    public int comparisonrange = 2;
+    public int comparisonRange = 2;
 
     protected LastFrameInfo lastFrame;
 
@@ -32,26 +33,37 @@ public class SyncedGameObject : SyncedEntity
     protected void UpdateValuesOnServer()
     {
         // Dont have to check id. Has to be a valid guid, because of parent structure of this class
-        SyncedGameObjectMessage msg = new SyncedGameObjectMessage(guid, WebSocketBehaviour.instance.GameID.ToString(), transform);
-        Debug.Log("SyncedGameObjectMessage: " + msg.ToJson());
+        SyncedGameObjectMessage msg = new SyncedGameObjectMessage(guid, WebSocketBehaviour.instance.ConnectionID.ToString(), transform);
         Send(msg.ToJson());
         if (isDebug) Debug.Log("Updated values on server");
     }
 
-    protected override void RecieveValues(TransformMessage msg)
+    protected override void RecieveValues(string msg)
     {
-        LastFrameInfo temp = new LastFrameInfo();
-        temp.position = msg.position;
-        temp.scale = msg.scale;
-        temp.rotation = msg.rotation;
-
-        if(!temp.CompareValues(transform, 1))
+        try
         {
-            //Only update the values if they are different
-            transform.DOMove(msg.position, 0.01f);
-            transform.DOScale(msg.scale, 0.01f);
-            transform.DORotateQuaternion(msg.rotation, 0.01f);
-            lastFrame.UpdateValues(temp);
+            SyncedGameObjectMessage newData = SyncedGameObjectMessage.FromJson(msg);
+            // Exit if the message is not of type WebsocketMessageType.SyncedGameObject, or if the message was created by this game instance.
+            if (newData.type != WebsocketMessageType.SyncedGameObject || Guid.Parse(newData.gameGuid) == WebSocketBehaviour.instance.ConnectionID) return;
+
+
+            LastFrameInfo temp = new LastFrameInfo();
+            temp.position = newData.transform.position;
+            temp.scale = newData.transform.scale;
+            temp.rotation = newData.transform.rotation;
+
+            if (!temp.CompareValues(transform, 1))
+            {
+                //Only update the values if they are different
+                transform.DOMove(newData.transform.position, 0.01f);
+                transform.DOScale(newData.transform.scale, 0.01f);
+                transform.DORotateQuaternion(newData.transform.rotation, 0.01f);
+                lastFrame.UpdateValues(temp);
+            }
+        }
+        catch(Exception e)
+        {
+            Debug.LogError(gameObject.name + " recieved a faulty message from the server. Message: " + msg + " It led to this error: " + e);
         }
     }
 }

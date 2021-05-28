@@ -10,15 +10,16 @@ public class BasicProcedureEntity : SyncedEntity
     public GameObject testItem;
 
     // Start is called before the first frame update
-    void Start()
+    public override void Start()
     {
+        base.Start();
         manager.basicProcedureEntities.Add(System.Guid.Parse(guid), this);
     }
 
     public void MakeRPC(string procedureName)
     {
         Invoke(procedureName, 0f);
-        RPCMessage msg = new RPCMessage(manager.player.GetId(), System.Guid.Parse(guid), procedureName);
+        RPCMessage msg = new RPCMessage(WebSocketBehaviour.instance.ConnectionID, System.Guid.Parse(guid), procedureName);
         Sync(msg);        
     }
 

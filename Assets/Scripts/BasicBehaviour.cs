@@ -55,6 +55,7 @@ public class BasicBehaviour : MonoBehaviour
 
     public void Send(string txt)
     {
+        // To Do Add connection id here to every message 
         if (connected)
         {
             ws.Send(Encoding.UTF8.GetBytes(txt));

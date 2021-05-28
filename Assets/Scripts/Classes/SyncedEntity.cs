@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using Msg;
 using System.Text;
+using Msg;
 
 public class SyncedEntity : MonoBehaviour
 {
@@ -56,7 +56,7 @@ public class SyncedEntity : MonoBehaviour
 
     protected IEnumerator RegisterOnMessageEvent()
     {
-        Func<bool> tempFunc = () => WebSocketStatus();
+        Func<bool> tempFunc = () => WebSocketBehaviour.WebSocketStatus();
         yield return new WaitWhile(tempFunc);
 
         WebSocketBehaviour.instance.GetWS().OnMessage += (byte[] msg) =>
@@ -75,7 +75,7 @@ public class SyncedEntity : MonoBehaviour
             if(target.guid == guid)
             {
                 TransformMessage message = TransformMessage.FromJson(msg);
-                RecieveValues(message);
+                RecieveValues(msg);
             }
         }
         catch (Exception e)
@@ -85,31 +85,8 @@ public class SyncedEntity : MonoBehaviour
         }
     }
 
-    protected virtual void RecieveValues(TransformMessage msg)
+    protected virtual void RecieveValues(string msg)
     {
         Debug.Log("Excuted base function for recieve value");
-    }
-
-    protected bool WebSocketStatus()
-    {
-        return WebSocketBehaviour.instance != null;
-    }
-}
-
-
-// Custom Editor 
-[CustomEditor(typeof(SyncedEntity), true)]
-public class CustomSyncedEntityInfo : Editor
-{
-    public override void OnInspectorGUI()
-    {
-        SyncedEntity script = (SyncedEntity)target;
-        DrawDefaultInspector();
-
-        EditorGUILayout.LabelField("ID", script.guid);
-        if (GUILayout.Button("New Id"))
-        {
-            script.SetRandomGuid();
-        }
     }
 }
