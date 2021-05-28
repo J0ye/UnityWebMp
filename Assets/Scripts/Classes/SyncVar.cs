@@ -116,7 +116,7 @@ public class SyncString : SyncVar
     /// </summary>
     public void SendChanges()
     {
-        SyncedStrings.Instance.Behaviour.Send(ToJson(SyncedStrings.Instance.playerID));
+        SyncedStrings.Instance.Behaviour.Send(ToJson(SyncedStrings.Instance.gameID));
     }
 
     protected void SetValue(string val)
@@ -242,7 +242,7 @@ public class SyncFloat : SyncVar
     /// </summary>
     public void SendChanges()
     {
-        SyncedFloats.Instance.Behaviour.Send(ToJson(SyncedFloats.Instance.playerID));
+        SyncedFloats.Instance.Behaviour.Send(ToJson(SyncedFloats.Instance.gameID));
     }
 
     protected void SetValue(float val)
@@ -273,7 +273,7 @@ public class SyncedStrings
     private List<SyncString> m_vars = new List<SyncString>();
 
     public BasicBehaviour Behaviour { get => bb; }
-    public Guid playerID;
+    public Guid gameID;
     public static SyncedStrings Instance;
 
     public SyncedStrings(BasicBehaviour basic, Guid id)
@@ -284,7 +284,7 @@ public class SyncedStrings
         }
 
         bb = basic;
-        playerID = id;
+        gameID = id;
     }
 
     public void AddEntry(SyncString newEntry)
@@ -348,7 +348,7 @@ public class SyncedFloats
 
     public static SyncedFloats Instance;
     public BasicBehaviour Behaviour { get => bb; }
-    public Guid playerID;
+    public Guid gameID;
 
     public SyncedFloats(BasicBehaviour basic, Guid id)
     {
@@ -358,7 +358,7 @@ public class SyncedFloats
         }
 
         bb = basic;
-        playerID = id;
+        gameID = id;
     }
 
     public void AddEntry(SyncFloat newEntry)

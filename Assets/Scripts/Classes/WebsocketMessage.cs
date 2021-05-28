@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Msg
 {
-    public enum WebsocketMessageType { Request, Position, Chat, ID, SyncString, SyncFloat, RPC, Transform }
+    public enum WebsocketMessageType { Request, Position, Chat, ID, SyncString, SyncFloat, RPC, Transform, SyncedGameObject }
     public class WebsocketMessage
     {
         public WebsocketMessageType type;
@@ -52,6 +52,9 @@ namespace Msg
     public class IDMessage : WebsocketMessage
     {
         public string guid;
+        /// <summary>
+        /// Id as a System.Guid
+        /// </summary>
         public System.Guid Guid { get => System.Guid.Parse(guid); }
 
         public IDMessage()
@@ -88,143 +91,49 @@ namespace Msg
         }
     }
 
-    public class PositionMessage : IDMessage
+    /// <summary>
+    /// Extends the IDMessage by another member for another ID, for example a game-specific ID.
+    /// </summary>
+    public class DoubleIDMessage : IDMessage
     {
-        public Vector3 position;
+        public string gameGuid;
+        /// <summary>
+        /// Game id as a System.Guid 
+        /// </summary>
+        public System.Guid GameGuid { get => System.Guid.Parse(gameGuid); }
 
-        public PositionMessage()
+        public DoubleIDMessage()
         {
-            type = WebsocketMessageType.Position;
-        }
-        public PositionMessage(Guid id, Vector3 pos)
-        {
-            type = WebsocketMessageType.Position;
-            SetGuid(id.ToString());
-            position = pos;
+            type = WebsocketMessageType.ID;
         }
 
-        public PositionMessage(string id, Vector3 pos)
+        public DoubleIDMessage(string guid, string gameGuid)
         {
-            type = WebsocketMessageType.Position;
-            SetGuid(id);
-            position = pos;
+            type = WebsocketMessageType.ID;
+            SetGuid(guid);
+            SetGameGuid(gameGuid);
         }
 
-        public static new PositionMessage FromJson(string target)
+        public static new DoubleIDMessage FromJson(string target)
         {
-            return JsonUtility.FromJson<PositionMessage>(target);
+            return JsonUtility.FromJson<DoubleIDMessage>(target);
         }
 
         public override string ToJson()
         {
             return JsonUtility.ToJson(this);
         }
-    }
 
-    public class TransformMessage : IDMessage
-    {
-        public Vector3 position;
-        public Vector3 scale;
-        public Quaternion rotation;
-
-        public static explicit operator TransformMessage(PositionMessage p) => new TransformMessage(p);
-
-        /// <summary>
-        /// Empty Constructor
-        /// </summary>
-        public TransformMessage()
+        public void SetGameGuid(string target)
         {
-            type = WebsocketMessageType.Transform;
-        }
-        /// <summary>
-        /// Standard constructor, that will convert target id to string.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="pos"></param>
-        /// <param name="sca"></param>
-        /// <param name="rot"></param>
-        public TransformMessage(Guid id, Vector3 pos, Vector3 sca, Quaternion rot)
-        {
-            type = WebsocketMessageType.Transform;
-            SetGuid(id.ToString());
-            position = pos;
-            scale = sca;
-            rotation = rot;
-        }
-
-        /// <summary>
-        /// Standard constructor
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="pos"></param>
-        /// <param name="sca"></param>
-        /// <param name="rot"></param>
-        public TransformMessage(string id, Vector3 pos, Vector3 sca, Quaternion rot)
-        {
-            type = WebsocketMessageType.Transform;
-            SetGuid(id);
-            position = pos;
-            scale = sca;
-            rotation = rot;
-        }
-        /// <summary>
-        /// Quick constructor. Converts target transform into message)
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="target"></param>
-        public TransformMessage(Guid id, Transform target)
-        {
-            type = WebsocketMessageType.Transform;
-            SetGuid(id.ToString());
-            position = target.position;
-            scale = target.localScale;
-            rotation = target.rotation;
-        }
-
-        /// <summary>
-        /// Quick constructor. Converts target transform into message. Will also try to convert a string into Guid.
-        /// It will throw an error, if it is unable to parse the string called it.
-        /// </summary>
-        /// <param name="id">Guid as a string for this message</param>
-        /// <param name="target">Target values to convert to a message</param>
-        public TransformMessage(string id, Transform target)
-        {
-            Guid temp;
-
-            type = WebsocketMessageType.Transform;
-            if (Guid.TryParse(id, out temp))
+            if (Guid.TryParse(target, out Guid temp))
             {
-                SetGuid(id);
-            } else
-            {
-                Debug.LogError("Could not parse " + id + " into a Guid. Cannot create a message for " + target);
+                gameGuid = target;
             }
-            position = target.position;
-            scale = target.localScale;
-            rotation = target.rotation;
-        }
-
-        /// <summary>
-        /// Quick constructor to parse PositionMessage into TransformMessage
-        /// </summary>
-        /// <param name="target"></param>
-        public TransformMessage(PositionMessage target)
-        {
-            type = WebsocketMessageType.Transform;
-            SetGuid(target.guid);
-            position = target.position;
-            scale = new Vector3(-9999, -9999, -9999);
-            rotation = new Quaternion(-9999, -9999, -9999, -9999);
-        }
-
-        public static new TransformMessage FromJson(string target)
-        {
-            return JsonUtility.FromJson<TransformMessage>(target);
-        }
-
-        public override string ToJson()
-        {
-            return JsonUtility.ToJson(this);
+            else
+            {
+                throw new Exception("Script is trying to set the id of a IDMessage to an invalid guid");
+            }
         }
     }
 
@@ -252,10 +161,10 @@ namespace Msg
         public string procedureGuid;
         public string procedureName;
 
-        public RPCMessage(Guid playerId, Guid procedureId, string procedure)
+        public RPCMessage(Guid gameID, Guid procedureId, string procedure)
         {
             type = WebsocketMessageType.RPC;
-            guid = playerId.ToString();
+            guid = gameID.ToString();
             procedureGuid = procedureId.ToString();
             procedureName = procedure;
         }

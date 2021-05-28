@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -9,6 +10,9 @@ public class WebSocketBehaviour : BasicBehaviour
 {
     public static WebSocketBehaviour instance;
     public bool isDebug = false;
+
+    protected Guid gameID;
+    public Guid GameID { get => gameID; set => gameID = value; }
 
     // Use this for initialization
     protected override void Start()
@@ -34,6 +38,8 @@ public class WebSocketBehaviour : BasicBehaviour
         {
             if(isDebug) Debug.Log("Base received message: " + Encoding.UTF8.GetString(msg));
         };
+
+        gameID = Guid.NewGuid();
     }
 
     protected virtual void OnApplicationQuit()

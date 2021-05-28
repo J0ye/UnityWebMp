@@ -48,18 +48,18 @@ public class NetworkManager : MonoBehaviour
         string tempF = testFloat.ToString();
         SyncString parsedS = SyncString.Parse(tempS);
         SyncFloat parsedF = SyncFloat.Parse(tempF);
-        Debug.Log("String as json: " + testString.ToJson(player.GetId()));
-        Debug.Log("And back to SyncVar " + SyncString.FromJson(testString.ToJson(player.GetId())).CallName 
-            + " " + SyncString.FromJson(testString.ToJson(player.GetId())).Value);
-        Debug.Log("Float as json: " + testFloat.ToJson(player.GetId()));
-        Debug.Log("And back to SyncVar " + SyncFloat.FromJson(testFloat.ToJson(player.GetId())).CallName
-            + " " + SyncFloat.FromJson(testFloat.ToJson(player.GetId())).Value);
+        Debug.Log("String as json: " + testString.ToJson(behaviour.GameID));
+        Debug.Log("And back to SyncVar " + SyncString.FromJson(testString.ToJson(behaviour.GameID)).CallName 
+            + " " + SyncString.FromJson(testString.ToJson(behaviour.GameID)).Value);
+        Debug.Log("Float as json: " + testFloat.ToJson(behaviour.GameID));
+        Debug.Log("And back to SyncVar " + SyncFloat.FromJson(testFloat.ToJson(behaviour.GameID)).CallName
+            + " " + SyncFloat.FromJson(testFloat.ToJson(behaviour.GameID)).Value);
     }
 
     public void TestNewJsonClass()
     {
-        //PositionMessage msg = new PositionMessage(player.GetId().ToString(), player.transform.position);
-        TransformMessage msg = new TransformMessage(player.GetId(), player.transform);
+        //PositionMessage msg = new PositionMessage(behaviour.GameID.ToString(), player.transform.position);
+        TransformMessage msg = new TransformMessage(behaviour.GameID, player.transform);
         Debug.Log("As json: " + msg.ToJson());
         TransformMessage b = TransformMessage.FromJson(msg.ToJson());
         Debug.Log("Parsed back from Json: Type: " + b.type +  " and rotation" + b.rotation
@@ -117,7 +117,7 @@ public class NetworkManager : MonoBehaviour
         }
 
         if (debug) Debug.Log("Sending Position");
-        TransformMessage temp = new TransformMessage(player.GetId(), player.transform);
+        TransformMessage temp = new TransformMessage(behaviour.GameID, player.transform);
         string msg = JsonUtility.ToJson(temp);
         behaviour.Send(msg);
         lastFrame.UpdateValues(player.transform);
@@ -151,12 +151,12 @@ public class NetworkManager : MonoBehaviour
         yield return 0;
     }
 
-    protected virtual void RemoveOnlinePlayer(Guid playerID)
+    protected virtual void RemoveOnlinePlayer(Guid gameID)
     {
         try
         {
-            Destroy(onlinePlayerObjects[playerID]);
-            onlinePlayerObjects.Remove(playerID);
+            Destroy(onlinePlayerObjects[gameID]);
+            onlinePlayerObjects.Remove(gameID);
         } catch (Exception e)
         {
             Debug.LogError("Something went wrong while deleting an online player: " + e);
@@ -169,59 +169,60 @@ public class NetworkManager : MonoBehaviour
         {
             IDMessage target = IDMessage.FromJson(msg);
             if (debug) Debug.Log("From Json: guid " + target.guid + " and type " + target.type);
-            // Ignore, if the message is about this player
-            if (player.IsReady() || target.type == WebsocketMessageType.ID)
+            // Ignore, if the message is about this game
+            if (target.Guid != behaviour.GameID && target.type != WebsocketMessageType.SyncedGameObject)
             {
-                if (target.Guid != player.GetId())
-                {
-                    ExecuteOnJson(target, msg);
-                } else
-                {
-                    if (debug) Debug.Log("Recieved message about me");
-                }
+                ExecuteOnJson(target, msg);
             }
         }
         catch (Exception e)
         {
-            Debug.LogError("Error caught " + e + " for: " + msg);
+            Debug.LogError("This msg: " + msg + " led to this error:" + e);
             return;
         }
     }
 
     protected virtual void ExecuteOnJson(IDMessage iDMessage, string msg)
     {
-        switch (iDMessage.type)
+        try
         {
-            case WebsocketMessageType.ID:
-                if (readyForId)
-                {
-                    player.SetId(iDMessage.Guid);
-                    SyncedStrings.Instance.playerID = iDMessage.Guid;
-                    SyncedFloats.Instance.playerID = iDMessage.Guid;
-                    if (debug) Debug.Log("New Id");
-                }
-                break;
-            case WebsocketMessageType.Position:
-                PositionMessage positionMessage = PositionMessage.FromJson(msg);
-                StartCoroutine(UpdateOnlinePlayer((TransformMessage)positionMessage));
-                break;
-            case WebsocketMessageType.Transform:
-                TransformMessage transformMessage = TransformMessage.FromJson(msg);
-                StartCoroutine(UpdateOnlinePlayer(transformMessage));
-                break;
-            case WebsocketMessageType.Request:
-                WebsocketRequest req = WebsocketRequest.FromJson(msg);
-                if (req.requestType == WebsocketMessageType.Position) SendTransform();
-                break;
-            case WebsocketMessageType.SyncString:
-                SyncString.FromJson(msg);
-                break;
-            case WebsocketMessageType.SyncFloat:
-                SyncFloat.FromJson(msg);
-                break;
-            case WebsocketMessageType.RPC:
-                FinishRPC(RPCMessage.FromJson(msg));
-                break;
+            switch (iDMessage.type)
+            {
+                case WebsocketMessageType.ID:
+                    if (readyForId)
+                    {
+                        player.SetId(iDMessage.Guid);
+                        behaviour.GameID = iDMessage.Guid;
+                        SyncedStrings.Instance.gameID = iDMessage.Guid;
+                        SyncedFloats.Instance.gameID = iDMessage.Guid;
+                        if (debug) Debug.Log("New Id");
+                    }
+                    break;
+                case WebsocketMessageType.Position:
+                    PositionMessage positionMessage = PositionMessage.FromJson(msg);
+                    StartCoroutine(UpdateOnlinePlayer((TransformMessage)positionMessage));
+                    break;
+                case WebsocketMessageType.Transform:
+                    TransformMessage transformMessage = TransformMessage.FromJson(msg);
+                    StartCoroutine(UpdateOnlinePlayer(transformMessage));
+                    break;
+                case WebsocketMessageType.Request:
+                    WebsocketRequest req = WebsocketRequest.FromJson(msg);
+                    if (req.requestType == WebsocketMessageType.Position) SendTransform();
+                    break;
+                case WebsocketMessageType.SyncString:
+                    SyncString.FromJson(msg);
+                    break;
+                case WebsocketMessageType.SyncFloat:
+                    SyncFloat.FromJson(msg);
+                    break;
+                case WebsocketMessageType.RPC:
+                    FinishRPC(RPCMessage.FromJson(msg));
+                    break;
+            }
+        } catch (Exception e)
+        {
+            Debug.LogError("A message with type " + iDMessage.type +" and ID " + iDMessage.guid +" led to an error: " + e);
         }
     }
 

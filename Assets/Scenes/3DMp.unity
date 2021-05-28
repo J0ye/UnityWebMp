@@ -3703,9 +3703,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21637ea6a4fdb154f92344bae34c626a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDebug: 1
-  isOnline: 1
-  guid: a5dd9d01-f76c-4998-acfc-79f30ba7dc10
+  isDebug: 0
+  isOnline: 0
+  guid: 1efac4e4-d59c-4931-96c4-fe053838f86a
   comparisonrange: 2
 --- !u!54 &1540133875
 Rigidbody:

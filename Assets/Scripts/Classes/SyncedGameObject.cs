@@ -32,7 +32,8 @@ public class SyncedGameObject : SyncedEntity
     protected void UpdateValuesOnServer()
     {
         // Dont have to check id. Has to be a valid guid, because of parent structure of this class
-        TransformMessage msg = new TransformMessage(guid, transform);
+        SyncedGameObjectMessage msg = new SyncedGameObjectMessage(guid, WebSocketBehaviour.instance.GameID.ToString(), transform);
+        Debug.Log("SyncedGameObjectMessage: " + msg.ToJson());
         Send(msg.ToJson());
         if (isDebug) Debug.Log("Updated values on server");
     }
