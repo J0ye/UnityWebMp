@@ -27,13 +27,13 @@ namespace Msg
 
         public WebsocketRequest()
         {
-            guid = Guid.NewGuid().ToString();
+            connectionID = Guid.NewGuid().ToString();
             type = WebsocketMessageType.Request;
         }
 
         public WebsocketRequest(WebsocketMessageType request, Guid id)
         {
-            guid = id.ToString();
+            connectionID = id.ToString();
             type = WebsocketMessageType.Request;
             requestType = request;
         }
@@ -51,11 +51,14 @@ namespace Msg
 
     public class IDMessage : WebsocketMessage
     {
-        public string guid;
+        /// <summary>
+        /// This is used to sign the message with an id unique to this instance of the system and its connection to the server
+        /// </summary>
+        public string connectionID;
         /// <summary>
         /// Id as a System.Guid
         /// </summary>
-        public System.Guid Guid { get => System.Guid.Parse(guid); }
+        public System.Guid Guid { get => System.Guid.Parse(connectionID); }
 
         public IDMessage()
         {
@@ -82,7 +85,7 @@ namespace Msg
         {
             if (Guid.TryParse(target, out Guid temp))
             {
-                guid = target;
+                connectionID = target;
             }
             else
             {
@@ -96,11 +99,11 @@ namespace Msg
     /// </summary>
     public class DoubleIDMessage : IDMessage
     {
-        public string gameGuid;
+        public string messageGuid;
         /// <summary>
         /// Game id as a System.Guid 
         /// </summary>
-        public System.Guid GameGuid { get => System.Guid.Parse(gameGuid); }
+        public System.Guid GameGuid { get => System.Guid.Parse(messageGuid); }
 
         public DoubleIDMessage()
         {
@@ -111,7 +114,7 @@ namespace Msg
         {
             type = WebsocketMessageType.ID;
             SetGuid(guid);
-            SetGameGuid(gameGuid);
+            SetMessageGuid(gameGuid);
         }
 
         public static new DoubleIDMessage FromJson(string target)
@@ -124,11 +127,11 @@ namespace Msg
             return JsonUtility.ToJson(this);
         }
 
-        public void SetGameGuid(string target)
+        public void SetMessageGuid(string target)
         {
             if (Guid.TryParse(target, out Guid temp))
             {
-                gameGuid = target;
+                messageGuid = target;
             }
             else
             {
@@ -149,7 +152,7 @@ namespace Msg
                 throw new Exception("Script is trying to create a SyncVarMessage for " + callName + " without the proper type");
 
             this.type = targetType;
-            this.guid = id.ToString();
+            this.connectionID = id.ToString();
             this.callName = callName;
             this.stringValue = stringValue;
             this.floatValue = floatValue;
@@ -164,7 +167,7 @@ namespace Msg
         public RPCMessage(Guid gameID, Guid procedureId, string procedure)
         {
             type = WebsocketMessageType.RPC;
-            guid = gameID.ToString();
+            connectionID = gameID.ToString();
             procedureGuid = procedureId.ToString();
             procedureName = procedure;
         }

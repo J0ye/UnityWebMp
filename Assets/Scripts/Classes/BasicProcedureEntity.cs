@@ -27,7 +27,7 @@ public class BasicProcedureEntity : SyncedEntity
     {
         try
         {
-            Send(msg.ToJson());
+            Send(msg);
         }
         catch (Exception e)
         {

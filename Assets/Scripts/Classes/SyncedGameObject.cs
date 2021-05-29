@@ -34,7 +34,7 @@ public class SyncedGameObject : SyncedEntity
     {
         // Dont have to check id. Has to be a valid guid, because of parent structure of this class
         SyncedGameObjectMessage msg = new SyncedGameObjectMessage(guid, WebSocketBehaviour.instance.ConnectionID.ToString(), transform);
-        Send(msg.ToJson());
+        Send(msg);
         if (isDebug) Debug.Log("Updated values on server");
     }
 
@@ -43,8 +43,9 @@ public class SyncedGameObject : SyncedEntity
         try
         {
             SyncedGameObjectMessage newData = SyncedGameObjectMessage.FromJson(msg);
+
             // Exit if the message is not of type WebsocketMessageType.SyncedGameObject, or if the message was created by this game instance.
-            if (newData.type != WebsocketMessageType.SyncedGameObject || Guid.Parse(newData.gameGuid) == WebSocketBehaviour.instance.ConnectionID) return;
+            if (newData.type != WebsocketMessageType.SyncedGameObject || Guid.Parse(newData.messageGuid) == WebSocketBehaviour.instance.ConnectionID) return;
 
 
             LastFrameInfo temp = new LastFrameInfo();

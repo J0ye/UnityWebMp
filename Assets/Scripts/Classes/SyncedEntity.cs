@@ -19,7 +19,7 @@ public class SyncedEntity : MonoBehaviour
         StartCoroutine(RegisterOnMessageEvent());
     }
 
-    public void Send(string msg)
+    public void Send(IDMessage msg)
     {
         try
         {
@@ -30,7 +30,7 @@ public class SyncedEntity : MonoBehaviour
             {
                 if (isDebug) Debug.Log(gameObject.name + " is trying to send a message, but is currently offline");
             }
-            if(isDebug) Debug.Log("Sending via " + WebSocketBehaviour.instance.adress + ": " + msg);
+            if(isDebug) Debug.Log("Sending via " + WebSocketBehaviour.instance.adress + ": " + msg.ToJson());
         }
         catch (Exception e)
         {
@@ -57,7 +57,7 @@ public class SyncedEntity : MonoBehaviour
     protected IEnumerator RegisterOnMessageEvent()
     {
         Func<bool> tempFunc = () => WebSocketBehaviour.WebSocketStatus();
-        yield return new WaitWhile(tempFunc);
+        yield return new WaitUntil(tempFunc);
 
         WebSocketBehaviour.instance.GetWS().OnMessage += (byte[] msg) =>
         {
@@ -72,7 +72,7 @@ public class SyncedEntity : MonoBehaviour
         try
         {
             IDMessage target = IDMessage.FromJson(msg);
-            if(target.guid == guid)
+            if(target.connectionID == guid)
             {
                 TransformMessage message = TransformMessage.FromJson(msg);
                 RecieveValues(msg);

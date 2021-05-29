@@ -2552,7 +2552,6 @@ MonoBehaviour:
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
-  m_ShouldActivateOnSelect: 1
 --- !u!114 &710969562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3707,7 +3706,7 @@ MonoBehaviour:
   isDebug: 0
   isOnline: 1
   guid: 1efac4e4-d59c-4931-96c4-fe053838f86a
-  comparisonrange: 2
+  comparisonRange: 2
 --- !u!54 &1540133875
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4521,8 +4520,7 @@ MonoBehaviour:
   onlinePlayerPrefab: {fileID: 4491890406141848871, guid: c0bc2cd4e33f3d14e932bf472afecd7a,
     type: 3}
   pingFrequency: 0.1
-  debug: 0
-  behaviour: {fileID: 0}
+  debug: 1
 --- !u!4 &1807530497
 Transform:
   m_ObjectHideFlags: 0
@@ -4552,15 +4550,26 @@ MonoBehaviour:
   onPressR:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: MakeRPC
-        m_Mode: 5
+      - m_Target: {fileID: 1807530496}
+        m_MethodName: UpScore
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: SpawnTest
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1807530496}
+        m_MethodName: ScoreInConsole
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
   onPressE:

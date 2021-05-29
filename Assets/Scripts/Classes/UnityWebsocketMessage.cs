@@ -13,6 +13,11 @@ namespace Msg
         {
             type = WebsocketMessageType.Position;
         }
+        public PositionMessage(Vector3 pos)
+        {
+            type = WebsocketMessageType.Position;
+            position = pos;
+        }
         public PositionMessage(Guid id, Vector3 pos)
         {
             type = WebsocketMessageType.Position;
@@ -52,6 +57,16 @@ namespace Msg
         public TransformMessage()
         {
             type = WebsocketMessageType.Transform;
+        }
+        /// <summary>
+        /// Empty Constructor
+        /// </summary>
+        public TransformMessage(Transform target)
+        {
+            type = WebsocketMessageType.Transform;
+            position = target.position;
+            scale = target.localScale;
+            rotation = target.rotation;
         }
         /// <summary>
         /// Standard constructor, that will convert target id to string.
@@ -121,7 +136,7 @@ namespace Msg
         {
             type = WebsocketMessageType.Transform;
             type = WebsocketMessageType.Transform;
-            SetGuid(target.guid);
+            SetGuid(target.connectionID);
             position = target.position;
             scale = new Vector3(-9999, -9999, -9999);
             rotation = new Quaternion(-9999, -9999, -9999, -9999);
@@ -143,6 +158,29 @@ namespace Msg
         public string transformMessage;
         public TransformMessage transform = new TransformMessage();
 
+        public SyncedGameObjectMessage(SyncedGameObject target)
+        {
+            type = WebsocketMessageType.SyncedGameObject;
+            SetMessageGuid(target.guid.ToString());
+            transform.SetGuid(connectionID);
+            transform.position = target.transform.position;
+            transform.scale = target.transform.localScale;
+            transform.rotation = target.transform.rotation;
+        }
+        /// <summary>
+        /// Quick constructor
+        /// </summary>
+        /// <param name=objectID">Id of this object</param>
+        /// <param name="target">Transform to convert into a message</param>
+        public SyncedGameObjectMessage( Guid objectID, Transform target)
+        {
+            type = WebsocketMessageType.SyncedGameObject;
+            SetMessageGuid(objectID.ToString());
+            transform.SetGuid(connectionID);
+            transform.position = target.position;
+            transform.scale = target.localScale;
+            transform.rotation = target.rotation;
+        }
         /// <summary>
         /// Standard constructor, that will convert target id to string.
         /// </summary>
@@ -150,12 +188,12 @@ namespace Msg
         /// <param name="pos"></param>
         /// <param name="sca"></param>
         /// <param name="rot"></param>
-        public SyncedGameObjectMessage(Guid id, Guid gameID, Vector3 pos, Vector3 sca, Quaternion rot)
+        public SyncedGameObjectMessage(Guid id, Guid messageID, Vector3 pos, Vector3 sca, Quaternion rot)
         {
             type = WebsocketMessageType.SyncedGameObject;
             SetGuid(id.ToString());
-            SetGameGuid(gameGuid.ToString());
-            transform.SetGuid(guid);
+            SetMessageGuid(messageID.ToString());
+            transform.SetGuid(connectionID);
             transform.position = pos;
             transform.scale = sca;
             transform.rotation = rot;
@@ -172,8 +210,8 @@ namespace Msg
         {
             type = WebsocketMessageType.SyncedGameObject;
             SetGuid(id);
-            SetGameGuid(gameID);
-            transform.SetGuid(guid);
+            SetMessageGuid(gameID);
+            transform.SetGuid(connectionID);
             transform.position = pos;
             transform.scale = sca;
             transform.rotation = rot;
@@ -187,8 +225,8 @@ namespace Msg
         {
             type = WebsocketMessageType.SyncedGameObject;
             SetGuid(id.ToString());
-            SetGameGuid(gameID.ToString());
-            transform.SetGuid(guid);
+            SetMessageGuid(gameID.ToString());
+            transform.SetGuid(connectionID);
             transform.position = target.position;
             transform.scale = target.localScale;
             transform.rotation = target.rotation;
@@ -204,8 +242,8 @@ namespace Msg
         {
             type = WebsocketMessageType.SyncedGameObject;
             SetGuid(id);
-            SetGameGuid(gameID);
-            transform.SetGuid(guid);
+            SetMessageGuid(gameID);
+            transform.SetGuid(connectionID);
             transform.position = target.position;
             transform.scale = target.localScale;
             transform.rotation = target.rotation;

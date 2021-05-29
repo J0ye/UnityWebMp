@@ -86,6 +86,15 @@ public class SyncString : SyncVar
         }
     }
     /// <summary>
+    /// Turns this SyncString into a SyncVarMessage object. 
+    /// </summary>
+    /// <returns>Returns a SyncVarMessage object with the values of this variable</returns>
+    public SyncVarMessage ToWebsocketMessage()
+    {
+        SyncVarMessage temp = new SyncVarMessage(WebsocketMessageType.SyncString, WebSocketBehaviour.instance.ConnectionID, CallName, Value, 0);
+        return temp;
+    }
+    /// <summary>
     /// Parses a target string into SyncString, only if the traget
     /// is in the SyncString syntax, i.e. SyncString:m_callName| m_value
     /// </summary>
@@ -114,7 +123,7 @@ public class SyncString : SyncVar
     /// </summary>
     public void SendChanges()
     {
-        SyncedStrings.Instance.Behaviour.Send(ToJson(SyncedStrings.Instance.gameID));
+        WebSocketBehaviour.instance.Send(ToWebsocketMessage());
     }
 
     protected void SetValue(string val)
@@ -134,7 +143,9 @@ public class SyncString : SyncVar
         }
         else
         {
-            throw new InvalidOperationException("Script is trying to create a SyncedString without creating  a list first. Insert new SyncedStrings(Behaviour); before " + CallName);
+            new SyncedStrings();
+            Debug.LogWarning("Created new list for synced strings. This can be ignored");
+            SyncedStrings.Instance.AddEntry(this);
         }
     }
 }
@@ -212,6 +223,15 @@ public class SyncFloat : SyncVar
         }
     }
     /// <summary>
+    /// Turns this SyncFloat into a SyncVarMessage object. 
+    /// </summary>
+    /// <returns>A SyncVarMessage object with the values of this SyncFloat</returns>
+    public SyncVarMessage ToWebsocketMessage()
+    {
+        SyncVarMessage temp = new SyncVarMessage(WebsocketMessageType.SyncFloat, WebSocketBehaviour.instance.ConnectionID, CallName, null, Value);
+        return temp;
+    }
+    /// <summary>
     /// Parses a target string into SyncFloat, only if the traget
     /// is in the SyncFloat syntax, i.e. SyncFloat:m_callName|m_value
     /// </summary>
@@ -240,7 +260,7 @@ public class SyncFloat : SyncVar
     /// </summary>
     public void SendChanges()
     {
-        SyncedFloats.Instance.Behaviour.Send(ToJson(SyncedFloats.Instance.gameID));
+        WebSocketBehaviour.instance.Send(ToWebsocketMessage());
     }
 
     protected void SetValue(float val)
@@ -260,29 +280,25 @@ public class SyncFloat : SyncVar
         }
         else
         {
-            throw new InvalidOperationException("Script is trying to create a SyncedFloat without creating a list first. Insert new SyncedFloats(Behaviour); before " + CallName);
+            new SyncedFloats();
+            Debug.LogWarning("Created a new list for synced flaots. This can be ignored.");
+            SyncedFloats.Instance.AddEntry(this);
         }
     }
 }
 
 public class SyncedStrings
 {
-    private BasicBehaviour bb;
     private List<SyncString> m_vars = new List<SyncString>();
 
-    public BasicBehaviour Behaviour { get => bb; }
-    public Guid gameID;
     public static SyncedStrings Instance;
 
-    public SyncedStrings(BasicBehaviour basic, Guid id)
+    public SyncedStrings()
     {
         if (Instance == null)
         {
             Instance = this;
         }
-
-        bb = basic;
-        gameID = id;
     }
 
     public void AddEntry(SyncString newEntry)
@@ -341,22 +357,16 @@ public class SyncedStrings
 
 public class SyncedFloats
 {
-    private BasicBehaviour bb;
     private List<SyncFloat> m_vars = new List<SyncFloat>();
 
     public static SyncedFloats Instance;
-    public BasicBehaviour Behaviour { get => bb; }
-    public Guid gameID;
 
-    public SyncedFloats(BasicBehaviour basic, Guid id)
+    public SyncedFloats()
     {
         if (Instance == null)
         {
             Instance = this;
         }
-
-        bb = basic;
-        gameID = id;
     }
 
     public void AddEntry(SyncFloat newEntry)

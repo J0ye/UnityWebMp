@@ -14,8 +14,6 @@ public class NetworkManager : MonoBehaviour
     public float pingFrequency = 1f;
     public bool debug = false;
 
-    [HideInInspector]
-    public WebSocketBehaviour behaviour;
     public Dictionary<Guid, BasicProcedureEntity> basicProcedureEntities = new Dictionary<Guid, BasicProcedureEntity>();
 
     protected Dictionary<Guid, GameObject> onlinePlayerObjects = new Dictionary<Guid, GameObject>();
@@ -38,48 +36,16 @@ public class NetworkManager : MonoBehaviour
         pingFrequency = input;
     }
 
-#region Test Functions 
-    public void TestSyncVar()
-    {
-        SyncString testString = new SyncString("MyTestString", "MyTestValue");
-        SyncFloat testFloat = new SyncFloat("MyTestFloat", 7.4f);
-        string tempS = testString.ToString();
-        string tempF = testFloat.ToString();
-        SyncString parsedS = SyncString.Parse(tempS);
-        SyncFloat parsedF = SyncFloat.Parse(tempF);
-        Debug.Log("String as json: " + testString.ToJson(behaviour.ConnectionID));
-        Debug.Log("And back to SyncVar " + SyncString.FromJson(testString.ToJson(behaviour.ConnectionID)).CallName 
-            + " " + SyncString.FromJson(testString.ToJson(behaviour.ConnectionID)).Value);
-        Debug.Log("Float as json: " + testFloat.ToJson(behaviour.ConnectionID));
-        Debug.Log("And back to SyncVar " + SyncFloat.FromJson(testFloat.ToJson(behaviour.ConnectionID)).CallName
-            + " " + SyncFloat.FromJson(testFloat.ToJson(behaviour.ConnectionID)).Value);
-    }
-
-    public void TestNewJsonClass()
-    {
-        //PositionMessage msg = new PositionMessage(behaviour.GameID.ToString(), player.transform.position);
-        TransformMessage msg = new TransformMessage(behaviour.ConnectionID, player.transform);
-        Debug.Log("As json: " + msg.ToJson());
-        TransformMessage b = TransformMessage.FromJson(msg.ToJson());
-        Debug.Log("Parsed back from Json: Type: " + b.type +  " and rotation" + b.rotation
-            + " " + b.position);
-        PositionMessage pm = PositionMessage.FromJson(msg.ToJson());
-        Debug.Log("Converted to position: " + pm.position);
-        TransformMessage temp = (TransformMessage)pm;
-        Debug.Log("Cast as from position" + temp.position);
-    }
-#endregion
-
     protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
-        lastFrame = new LastFrameInfo(transform);
+        lastFrame = new LastFrameInfo(player.transform);
     }
 
     protected void LateUpdate()
     {
         if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.transform.position.Round(1));
-        if(lastFrame.position.Round(1) != player.transform.position.Round(1))
+        if (!lastFrame.CompareValues(player.transform, 1))
         {
             SendTransform();
         }
@@ -88,32 +54,35 @@ public class NetworkManager : MonoBehaviour
     protected virtual IEnumerator SetUpSocket()
     {
         Func<bool> tempFunc = () => WebSocketBehaviour.WebSocketStatus();
-        yield return new WaitWhile(tempFunc);
+        yield return new WaitUntil(tempFunc);
 
-        behaviour = WebSocketBehaviour.instance;
-        behaviour.GetWS().OnMessage += (byte[] msg) =>
+        WebSocketBehaviour.instance.GetWS().OnMessage += (byte[] msg) =>
         {
             ProcessMessage(Encoding.UTF8.GetString(msg));
         };
 
-        new SyncedStrings(behaviour, Guid.NewGuid());
-        new SyncedFloats(behaviour, Guid.NewGuid());
+        new SyncedStrings();
+        new SyncedFloats();
         score = new SyncFloat("score", 0);
+        if(debug) Debug.Log("Completed set up for network manager");
     }
 
     protected virtual void SendTransform()
     {
-        if (behaviour == null)
+        try
         {
-            return;
+            if(WebSocketBehaviour.instance != null)
+            {
+                if (debug) Debug.Log("Sending Position");
+                TransformMessage msg = new TransformMessage(WebSocketBehaviour.instance.ConnectionID, player.transform);
+                WebSocketBehaviour.instance.Send(msg);
+                lastFrame.UpdateValues(player.transform);
+                if (debug) Debug.Log("Finisehed sending Player Pos");
+            }
+        } catch (Exception e)
+        {
+            Debug.Log("System failed to send player transform data to server, because of: " + e);
         }
-
-        if (debug) Debug.Log("Sending Position");
-        TransformMessage temp = new TransformMessage(behaviour.ConnectionID, player.transform);
-        string msg = JsonUtility.ToJson(temp);
-        behaviour.Send(msg);
-        lastFrame.UpdateValues(player.transform);
-        if (debug) Debug.Log("Finisehed sending Player Pos");        
     }
 
     /// <summary>
@@ -160,9 +129,9 @@ public class NetworkManager : MonoBehaviour
         try
         {
             IDMessage target = IDMessage.FromJson(msg);
-            if (debug) Debug.Log("From Json: guid " + target.guid + " and type " + target.type);
+            if (debug) Debug.Log("From Json: guid " + target.connectionID + " and type " + target.type);
             // Ignore, if the message is about this game
-            if (target.Guid != behaviour.ConnectionID && target.type != WebsocketMessageType.SyncedGameObject)
+            if (target.Guid != WebSocketBehaviour.instance.ConnectionID && target.type != WebsocketMessageType.SyncedGameObject)
             {
                 ExecuteOnJson(target, msg);
             }
@@ -181,9 +150,7 @@ public class NetworkManager : MonoBehaviour
             switch (iDMessage.type)
             {
                 case WebsocketMessageType.ID:
-                    behaviour.ConnectionID = iDMessage.Guid;
-                    SyncedStrings.Instance.gameID = iDMessage.Guid;
-                    SyncedFloats.Instance.gameID = iDMessage.Guid;
+                    WebSocketBehaviour.instance.ConnectionID = iDMessage.Guid;
                     if (debug) Debug.Log("New Id");
                     break;
                 case WebsocketMessageType.Position:
@@ -210,7 +177,7 @@ public class NetworkManager : MonoBehaviour
             }
         } catch (Exception e)
         {
-            Debug.LogError("A message with type " + iDMessage.type +" and ID " + iDMessage.guid +" led to an error: " + e);
+            Debug.LogError("A message with type " + iDMessage.type +" and ID " + iDMessage.connectionID +" led to an error: " + e);
         }
     }
 

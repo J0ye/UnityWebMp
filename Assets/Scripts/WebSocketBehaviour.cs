@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using Msg;
 
 using HybridWebSocket;
 
@@ -45,6 +46,12 @@ public class WebSocketBehaviour : BasicBehaviour
         ws.Close();
     }
 
+    public void Send(IDMessage msg)
+    {
+        msg.connectionID = connectionID.ToString(); // Signing message with unique connection id 
+        base.Send(msg.ToJson());
+    }
+
     public WebSocket GetWS()
     {
         return ws;
@@ -52,6 +59,6 @@ public class WebSocketBehaviour : BasicBehaviour
 
     public static bool WebSocketStatus()
     {
-        return WebSocketBehaviour.instance != null;
+        return instance != null;
     }
 }
