@@ -6,7 +6,7 @@ using Msg;
 
 public class BasicProcedureEntity : SyncedEntity
 {
-    public NetworkManager manager;
+    public NetworkManager3D manager;
     public GameObject testItem;
 
     // Start is called before the first frame update

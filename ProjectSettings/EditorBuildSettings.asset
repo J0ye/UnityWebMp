@@ -14,9 +14,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/3DMp.unity
     guid: 0f94a7efe7b401842a8c4c86e98c5a0d
-  - enabled: 1
+  - enabled: 0
     path: Assets/WebXR/Samples/Desert/WebXR.unity
     guid: 62764e63b9bc64baaaf251014195be42
+  - enabled: 1
+    path: Assets/Scenes/VRMp.unity
+    guid: 8f87c1b9724ff1f48badc9edcab832c0
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: abf29a1dc62fb184d98c892e6089cd7c,
       type: 2}

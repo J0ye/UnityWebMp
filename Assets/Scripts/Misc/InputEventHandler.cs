@@ -20,19 +20,19 @@ public class InputEventHandler : MonoBehaviour {
     [Tooltip("These functions will be called, when the the space bar is pressed")]
     public UnityEvent onPressSpace;
     // Use this for initialization
-    void Start ()
+    protected void Start ()
     {
-        StartEvent(onPressR);
-        StartEvent(onPressE);
-        StartEvent(onPressI);
-        StartEvent(onPressU);
-        StartEvent(onPressJ);
-        StartEvent(onPressReturn);
-        StartEvent(onPressSpace);
+        SetUpEvent(onPressR);
+        SetUpEvent(onPressE);
+        SetUpEvent(onPressI);
+        SetUpEvent(onPressU);
+        SetUpEvent(onPressJ);
+        SetUpEvent(onPressReturn);
+        SetUpEvent(onPressSpace);
     }
 
 	// Update is called once per frame
-	void Update ()
+	protected void Update ()
     {
 		if (Input.GetKeyDown(KeyCode.R))
         {
@@ -70,7 +70,7 @@ public class InputEventHandler : MonoBehaviour {
         }
     }
 
-    private void StartEvent(UnityEvent eve)
+    protected void SetUpEvent(UnityEvent eve)
     {
         if (eve == null)
         {

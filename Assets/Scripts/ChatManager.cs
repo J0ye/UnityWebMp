@@ -6,18 +6,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(ChatWebSocketBehaviour))]
-public class ChatManager : MonoBehaviour
+public class ChatManager : NetworkManager
 {
     public GameObject messagePrefab;
     public float displayedMessageTimer = 3f;
     public Text inputText;
 
-    protected ChatWebSocketBehaviour behaviour;
     private List<GameObject> displayedMessages = new List<GameObject>();
-    private void Start()
-    {
-        StartCoroutine(SetUpSocket());
-    }
 
     public void SendToChat(string msg)
     {
@@ -25,22 +20,7 @@ public class ChatManager : MonoBehaviour
         ChatWebSocketBehaviour.instance.Send(msg);
     }
 
-    protected virtual IEnumerator SetUpSocket()
-    {
-        while (ChatWebSocketBehaviour.instance == null)
-        {
-            Debug.Log("Waiting for instance");
-            yield return new WaitForSeconds(0.5f);
-        }
-
-        behaviour = ChatWebSocketBehaviour.instance;
-        behaviour.GetWS().OnMessage += (byte[] msg) =>
-        {
-            ProcessMessage(Encoding.UTF8.GetString(msg));
-        };
-    }
-
-    public void ProcessMessage(string msg)
+    protected override void ProcessMessage(string msg)
     {
         foreach(GameObject go in displayedMessages)
         {

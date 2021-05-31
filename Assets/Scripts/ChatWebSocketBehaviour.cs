@@ -37,7 +37,7 @@ public class ChatWebSocketBehaviour : BasicBehaviour
 
     protected virtual void OnApplicationQuit()
     {
-        ws.Close();
+        if(this.enabled) ws.Close();
     }
 
     public WebSocket GetWS()
