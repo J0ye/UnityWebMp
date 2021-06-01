@@ -32,7 +32,7 @@ public class PlayerController : Player
         }
 
         // Jumping
-        if (Input.GetKey(KeyCode.Space) && grounded)
+        if (Input.GetButton("Jump") && grounded)
         {
             Jump();
         }
