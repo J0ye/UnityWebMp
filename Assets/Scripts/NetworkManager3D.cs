@@ -1,9 +1,9 @@
-﻿using DG.Tweening;
-using Msg;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
+using Msg;
 
 public class NetworkManager3D : NetworkManager
 {
@@ -30,12 +30,13 @@ public class NetworkManager3D : NetworkManager
     protected override void Start()
     {
         base.Start();
+        DOTween.Init();
         lastFrame = new LastFrameInfo(player.transform);
     }
 
     protected void LateUpdate()
     {
-        if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.transform.position.Round(1));
+        //if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.transform.position.Round(1));
         if (!lastFrame.CompareValues(player.transform, 1))
         {
             SendTransform();
@@ -44,7 +45,7 @@ public class NetworkManager3D : NetworkManager
 
     protected override IEnumerator SetUpSocket()
     {
-        base.SetUpSocket();
+        StartCoroutine(base.SetUpSocket());
         yield return 0;
 
         new SyncedStrings();
@@ -58,11 +59,11 @@ public class NetworkManager3D : NetworkManager
         {
             if (WebSocketBehaviour.instance != null)
             {
-                if (debug) Debug.Log("Sending Position");
+                //if (debug) Debug.Log("Sending transform informations");
                 TransformMessage msg = new TransformMessage(WebSocketBehaviour.instance.ConnectionID, player.transform);
                 WebSocketBehaviour.instance.Send(msg);
                 lastFrame.UpdateValues(player.transform);
-                if (debug) Debug.Log("Finisehed sending Player Pos");
+                if (debug) Debug.Log("Finisehed transform informations");
             }
         }
         catch (Exception e)
@@ -80,21 +81,32 @@ public class NetworkManager3D : NetworkManager
     /// <returns></returns>
     protected virtual IEnumerator UpdateOnlinePlayer(TransformMessage update)
     {
-        if (!onlinePlayerObjects.ContainsKey(update.Guid))
+        try
         {
-            onlinePlayerObjects.Add(update.Guid, Instantiate(onlinePlayerPrefab));
-        }
+            Debug.Log("also Here");
+            if (!onlinePlayerObjects.ContainsKey(update.Guid))
+            {
+                onlinePlayerObjects.Add(update.Guid, Instantiate(onlinePlayerPrefab));
+            }
 
-        if (update.position == new Vector3(-9999, -9999, -9999))
+            if (update.position == new Vector3(-9999, -9999, -9999))
+            {
+                // The player is at the exit position.
+                RemoveOnlinePlayer(update.Guid);
+            }
+            else
+            {
+                if (debug) Debug.Log("Updating online player " + update.connectionID + " with " + update.position);
+                onlinePlayerObjects[update.Guid].transform.position = update.position;
+                onlinePlayerObjects[update.Guid].transform.DOMove(update.position, pingFrequency / 2, false);
+                onlinePlayerObjects[update.Guid].transform.DOLocalRotateQuaternion(update.rotation, pingFrequency / 2);
+                onlinePlayerObjects[update.Guid].transform.DOScale(update.scale, pingFrequency / 2);
+
+                Debug.Log("also even Here");
+            }
+        } catch(Exception e)
         {
-            // The player is at the exit position.
-            RemoveOnlinePlayer(update.Guid);
-        }
-        else
-        {
-            onlinePlayerObjects[update.Guid].transform.DOMove(update.position, pingFrequency / 2, false);
-            onlinePlayerObjects[update.Guid].transform.DOLocalRotateQuaternion(update.rotation, pingFrequency / 2);
-            onlinePlayerObjects[update.Guid].transform.DOScale(update.scale, pingFrequency / 2);
+            Debug.LogError("Could not set valeus for online player: " + e);
         }
         yield return 0;
     }
@@ -141,6 +153,7 @@ public class NetworkManager3D : NetworkManager
                     break;
                 case WebsocketMessageType.Transform:
                     TransformMessage transformMessage = TransformMessage.FromJson(msg);
+                    Debug.Log("Here: " +transformMessage.ToJson());
                     StartCoroutine(UpdateOnlinePlayer(transformMessage));
                     break;
                 case WebsocketMessageType.Request:

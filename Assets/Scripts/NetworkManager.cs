@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using Msg;
-using DG.Tweening;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -24,8 +22,11 @@ public class NetworkManager : MonoBehaviour
 
     protected virtual IEnumerator SetUpSocket()
     {
-        Func<bool> tempFunc = () => WebSocketBehaviour.WebSocketStatus();
-        yield return new WaitUntil(tempFunc);
+        while (WebSocketBehaviour.instance == null)
+        {
+            Debug.Log("Waiting for instance");
+            yield return new WaitForSeconds(0.5f);
+        }
 
         WebSocketBehaviour.instance.GetWS().OnMessage += (byte[] msg) =>
         {

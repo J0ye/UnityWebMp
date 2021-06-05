@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &267411653363928378
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 267411653363928773}
+  - component: {fileID: 267411653363928772}
+  - component: {fileID: 267411653363928379}
+  - component: {fileID: 267411653363928774}
+  m_Layer: 0
+  m_Name: NetworkManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &267411653363928773
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267411653363928378}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.44991398, y: -0.6353345, z: 1.5281153}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &267411653363928772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267411653363928378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94495b8ab5ad5c7438d8f2d4c232d97d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pingFrequency: 1
+  debug: 0
+  player: {fileID: 0}
+  onlinePlayerPrefab: {fileID: 4491890406141848871, guid: c0bc2cd4e33f3d14e932bf472afecd7a,
+    type: 3}
+--- !u!114 &267411653363928379
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267411653363928378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68d154c12bfa8a94191ed2c5ada51d68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: base
+  adress: wss://joye.dev:9000/
+  pingFrequency: 0.5
+  isDebug: 0
+--- !u!114 &267411653363928774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267411653363928378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e71ba3a55969af04ab2006865c89d9c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onPressR:
+    m_PersistentCalls:
+      m_Calls: []
+  onPressE:
+    m_PersistentCalls:
+      m_Calls: []
+  onPressI:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 267411653363928772}
+        m_MethodName: UpScore
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 267411653363928772}
+        m_MethodName: ScoreInConsole
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  onPressU:
+    m_PersistentCalls:
+      m_Calls: []
+  onPressJ:
+    m_PersistentCalls:
+      m_Calls: []
+  onPressReturn:
+    m_PersistentCalls:
+      m_Calls: []
+  onPressSpace:
+    m_PersistentCalls:
+      m_Calls: []
