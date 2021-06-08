@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Msg
 {
-    public enum WebsocketMessageType { Request, Position, Chat, ID, SyncString, SyncFloat, RPC, Transform, SyncedGameObject }
+    public enum WebsocketMessageType { Request, Position, Chat, ID, SyncString, SyncFloat, RPC, Transform, SyncedGameObject, VRPlayer }
     public class WebsocketMessage
     {
         public WebsocketMessageType type;
@@ -89,7 +89,7 @@ namespace Msg
             }
             else
             {
-                throw new Exception("Script is trying to set the id of a PositionMessage to an invalid guid");
+                throw new Exception("Script is trying to set the id of a IDMessage to an invalid guid");
             }
         }
     }
@@ -100,10 +100,6 @@ namespace Msg
     public class DoubleIDMessage : IDMessage
     {
         public string messageGuid;
-        /// <summary>
-        /// Game id as a System.Guid 
-        /// </summary>
-        public System.Guid GameGuid { get => System.Guid.Parse(messageGuid); }
 
         public DoubleIDMessage()
         {
@@ -129,14 +125,7 @@ namespace Msg
 
         public void SetMessageGuid(string target)
         {
-            if (Guid.TryParse(target, out Guid temp))
-            {
-                messageGuid = target;
-            }
-            else
-            {
-                throw new Exception("Script is trying to set the id of a IDMessage to an invalid guid");
-            }
+            messageGuid = target;
         }
     }
 

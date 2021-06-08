@@ -161,42 +161,10 @@ namespace Msg
         public SyncedGameObjectMessage(SyncedGameObject target)
         {
             type = WebsocketMessageType.SyncedGameObject;
-            SetMessageGuid(target.guid.ToString());
-            transform.SetGuid(connectionID);
+            SetMessageGuid(target.id);
             transform.position = target.transform.position;
             transform.scale = target.transform.localScale;
             transform.rotation = target.transform.rotation;
-        }
-        /// <summary>
-        /// Quick constructor
-        /// </summary>
-        /// <param name=objectID">Id of this object</param>
-        /// <param name="target">Transform to convert into a message</param>
-        public SyncedGameObjectMessage( Guid objectID, Transform target)
-        {
-            type = WebsocketMessageType.SyncedGameObject;
-            SetMessageGuid(objectID.ToString());
-            transform.SetGuid(connectionID);
-            transform.position = target.position;
-            transform.scale = target.localScale;
-            transform.rotation = target.rotation;
-        }
-        /// <summary>
-        /// Standard constructor, that will convert target id to string.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="pos"></param>
-        /// <param name="sca"></param>
-        /// <param name="rot"></param>
-        public SyncedGameObjectMessage(Guid id, Guid messageID, Vector3 pos, Vector3 sca, Quaternion rot)
-        {
-            type = WebsocketMessageType.SyncedGameObject;
-            SetGuid(id.ToString());
-            SetMessageGuid(messageID.ToString());
-            transform.SetGuid(connectionID);
-            transform.position = pos;
-            transform.scale = sca;
-            transform.rotation = rot;
         }
 
         /// <summary>
@@ -216,38 +184,6 @@ namespace Msg
             transform.scale = sca;
             transform.rotation = rot;
         }
-        /// <summary>
-        /// Quick constructor. Converts target transform into message)
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="target"></param>
-        public SyncedGameObjectMessage(Guid id, Guid gameID, Transform target)
-        {
-            type = WebsocketMessageType.SyncedGameObject;
-            SetGuid(id.ToString());
-            SetMessageGuid(gameID.ToString());
-            transform.SetGuid(connectionID);
-            transform.position = target.position;
-            transform.scale = target.localScale;
-            transform.rotation = target.rotation;
-        }
-
-        /// <summary>
-        /// Quick constructor. Converts target transform into message. Will also try to convert a string into Guid.
-        /// It will throw an error, if it is unable to parse the string called it.
-        /// </summary>
-        /// <param name="id">Guid as a string for this message</param>
-        /// <param name="target">Target values to convert to a message</param>
-        public SyncedGameObjectMessage(string id, string gameID, Transform target)
-        {
-            type = WebsocketMessageType.SyncedGameObject;
-            SetGuid(id);
-            SetMessageGuid(gameID);
-            transform.SetGuid(connectionID);
-            transform.position = target.position;
-            transform.scale = target.localScale;
-            transform.rotation = target.rotation;
-        }
 
         public static new SyncedGameObjectMessage FromJson(string target)
         {
@@ -259,6 +195,53 @@ namespace Msg
         public override string ToJson()
         {
             transformMessage = transform.ToJson();
+            return JsonUtility.ToJson(this);
+        }
+    }
+
+    public class VRPlayerMessage : IDMessage
+    {
+        public TransformMessage head;
+        public TransformMessage lHand;
+        public TransformMessage rHand;
+
+        public string Head;
+        public string LHand;
+        public string RHand;
+
+        public VRPlayerMessage(VRPlayerController player)
+        {
+            type = WebsocketMessageType.VRPlayer;
+            // Dont need to set guid. Message will be signed on send
+            head = new TransformMessage(player.head);
+            lHand = new TransformMessage(player.lHand);
+            rHand = new TransformMessage(player.rHand);
+        }
+
+        public VRPlayerMessage(Transform headt, Transform lHandt, Transform rHandt)
+        {
+            type = WebsocketMessageType.VRPlayer;
+            // Dont need to set guid. Message will be signed on send
+            head = new TransformMessage(headt);
+            lHand = new TransformMessage(lHandt);
+            rHand = new TransformMessage(rHandt);
+        }
+
+        public static new VRPlayerMessage FromJson(string msg)
+        {
+            VRPlayerMessage ret = JsonUtility.FromJson<VRPlayerMessage>(msg);
+            ret.head = TransformMessage.FromJson(ret.Head);
+            ret.lHand = TransformMessage.FromJson(ret.LHand);
+            ret.rHand = TransformMessage.FromJson(ret.RHand);
+
+            return ret;
+        }
+
+        public override string ToJson()
+        {
+            Head = head.ToJson();
+            LHand = lHand.ToJson();
+            RHand = rHand.ToJson();
             return JsonUtility.ToJson(this);
         }
     }

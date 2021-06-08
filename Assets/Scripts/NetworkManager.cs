@@ -15,6 +15,11 @@ public class NetworkManager : MonoBehaviour
         pingFrequency = input;
     }
 
+    public void SimulateMessage(string msg)
+    {
+        ProcessMessage(msg);
+    }
+
     protected virtual void Start()
     {
         StartCoroutine(SetUpSocket());
@@ -25,7 +30,7 @@ public class NetworkManager : MonoBehaviour
         while (WebSocketBehaviour.instance == null)
         {
             Debug.Log("Waiting for instance");
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.2f);
         }
 
         WebSocketBehaviour.instance.GetWS().OnMessage += (byte[] msg) =>

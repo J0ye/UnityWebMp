@@ -12,11 +12,14 @@ public class PlayerController : Player
     public float jumpStrength = 5f;
     public LayerMask groundLayer;
 
+    protected Tween fallSpeedTween;
+    protected Tween hoverHeightTween;
+
     private float startingFallSpeed;
     private float startingHoverHeight;
     private bool grounded = true;
 
-    private void Start()
+    protected virtual void Start()
     {
         startingFallSpeed = fallSpeed;
         startingHoverHeight = hoverHeight;
@@ -51,15 +54,16 @@ public class PlayerController : Player
     {
         fallSpeed *= -jumpStrength;
         hoverHeight -= 1;
-        DOTween.To(() => hoverHeight, x => hoverHeight = x, startingHoverHeight, 1);
-        DOTween.To(() => fallSpeed, x => fallSpeed = x, startingFallSpeed, 1);
+        hoverHeightTween = DOTween.To(() => hoverHeight, x => hoverHeight = x, startingHoverHeight, 1);
+        fallSpeedTween = DOTween.To(() => fallSpeed, x => fallSpeed = x, startingFallSpeed, 1);
     }
 
     protected void ResetJump()
     {
         hoverHeight = startingHoverHeight;
         fallSpeed = startingFallSpeed;
-        DOTween.Clear();
+        DOTween.Kill(startingHoverHeight);
+        DOTween.Kill(startingFallSpeed);
     }
 
     protected void Hover()

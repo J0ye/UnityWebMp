@@ -48,15 +48,8 @@ public class WebSocketBehaviour : BasicBehaviour
 
     public void Send(IDMessage msg)
     {
-        if(connectionID != Guid.Empty)
-        {
-            msg.connectionID = connectionID.ToString(); // Signing message with unique connection id 
-            base.Send(msg.ToJson());
-        }
-        else
-        {
-            Debug.Log("ID has not been set yet");
-        }
+        msg.connectionID = connectionID.ToString(); // Signing message with unique connection id 
+        base.Send(msg.ToJson());
     }
 
     public WebSocket GetWS()

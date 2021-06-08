@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System;
 
 [CustomEditor(typeof(BasicBehaviour), true)]
 public class CustomWebsocketInfo : Editor
@@ -10,7 +11,21 @@ public class CustomWebsocketInfo : Editor
     {
         BasicBehaviour script = (BasicBehaviour)target;
         DrawDefaultInspector();
-        
-        EditorGUILayout.LabelField("State", script.GetState());
+
+        DisplayID();
+        EditorGUILayout.LabelField("State", script.GetState());        
+    }
+
+    private void DisplayID()
+    {
+        try
+        {
+            WebSocketBehaviour wb = (WebSocketBehaviour)target;
+            EditorGUILayout.LabelField("ID", wb.ConnectionID.ToString());
+        }
+        catch (Exception e)
+        {
+            
+        }
     }
 }

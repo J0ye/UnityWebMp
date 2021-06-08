@@ -9,6 +9,7 @@ public class NetworkManager3D : NetworkManager
 {
     public PlayerController player;
     public GameObject onlinePlayerPrefab;
+    public GameObject vrOnlinePlayerPrefab;
 
     public Dictionary<Guid, BasicProcedureEntity> basicProcedureEntities = new Dictionary<Guid, BasicProcedureEntity>();
 
@@ -30,11 +31,10 @@ public class NetworkManager3D : NetworkManager
     protected override void Start()
     {
         base.Start();
-        DOTween.Init();
         lastFrame = new LastFrameInfo(player.transform);
     }
 
-    protected void LateUpdate()
+    protected virtual void LateUpdate()
     {
         //if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.transform.position.Round(1));
         if (!lastFrame.CompareValues(player.transform, 1))
@@ -83,32 +83,62 @@ public class NetworkManager3D : NetworkManager
     {
         try
         {
-            Debug.Log("also Here");
             if (!onlinePlayerObjects.ContainsKey(update.Guid))
             {
                 onlinePlayerObjects.Add(update.Guid, Instantiate(onlinePlayerPrefab));
             }
 
-            if (update.position == new Vector3(-9999, -9999, -9999))
-            {
-                // The player is at the exit position.
-                RemoveOnlinePlayer(update.Guid);
-            }
-            else
-            {
-                if (debug) Debug.Log("Updating online player " + update.connectionID + " with " + update.position);
-                onlinePlayerObjects[update.Guid].transform.position = update.position;
-                onlinePlayerObjects[update.Guid].transform.DOMove(update.position, pingFrequency / 2, false);
-                onlinePlayerObjects[update.Guid].transform.DOLocalRotateQuaternion(update.rotation, pingFrequency / 2);
-                onlinePlayerObjects[update.Guid].transform.DOScale(update.scale, pingFrequency / 2);
-
-                Debug.Log("also even Here");
-            }
+            SetNewTransformValues(onlinePlayerObjects[update.Guid].transform, update);
+            
         } catch(Exception e)
         {
-            Debug.LogError("Could not set valeus for online player: " + e);
+            Debug.LogError("Could not set values for online player: " + e);
         }
         yield return 0;
+    }
+
+    protected virtual IEnumerator UpdateVROnlinePlayer(VRPlayerMessage update)
+    {
+        try
+        {
+            if (!onlinePlayerObjects.ContainsKey(update.Guid))
+            {
+                onlinePlayerObjects.Add(update.Guid, Instantiate(vrOnlinePlayerPrefab));
+            }
+
+            // The VRPlayerPrefab is set up like a Vr player, but without any functions. 
+            // The first child object of the prefab is the parent object of each extremitie
+            Transform webXRRig = onlinePlayerObjects[update.Guid].transform.GetChild(0);
+            Transform lHand = webXRRig.GetChild(0); // The first child should be the left hand
+            Transform rHand = webXRRig.GetChild(1); // The second should be the right hand
+            Transform head = webXRRig.GetChild(2); // The last chidl should be the ehad object
+
+            SetNewTransformValues(lHand, update.lHand);
+            SetNewTransformValues(rHand, update.rHand);
+            SetNewTransformValues(head, update.head);
+
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Could not set values for vr online player: " + e);
+        }
+        yield return 0;
+    }
+
+    protected virtual void SetNewTransformValues(Transform target, TransformMessage update)
+    {
+        if (update.position == new Vector3(-9999, -9999, -9999))
+        {
+            // The player is at the exit position.
+            RemoveOnlinePlayer(update.Guid);
+        }
+        else
+        {
+            if (debug) Debug.Log("Updating online player " + update.connectionID + " with " + update.position);
+            target.DOMove(update.position, pingFrequency / 2, false);
+            target.DOLocalRotateQuaternion(update.rotation, pingFrequency / 2);
+            target.DOScale(update.scale, pingFrequency / 2);
+        }
     }
 
     protected virtual void RemoveOnlinePlayer(Guid gameID)
@@ -153,8 +183,11 @@ public class NetworkManager3D : NetworkManager
                     break;
                 case WebsocketMessageType.Transform:
                     TransformMessage transformMessage = TransformMessage.FromJson(msg);
-                    Debug.Log("Here: " +transformMessage.ToJson());
                     StartCoroutine(UpdateOnlinePlayer(transformMessage));
+                    break;
+                case WebsocketMessageType.VRPlayer:
+                    VRPlayerMessage vRPlayerMessage = VRPlayerMessage.FromJson(msg);
+                    StartCoroutine(UpdateVROnlinePlayer(vRPlayerMessage));
                     break;
                 case WebsocketMessageType.Request:
                     WebsocketRequest req = WebsocketRequest.FromJson(msg);

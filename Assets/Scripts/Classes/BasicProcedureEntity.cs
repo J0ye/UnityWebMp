@@ -13,14 +13,14 @@ public class BasicProcedureEntity : SyncedEntity
     public override void Start()
     {
         base.Start();
-        manager.basicProcedureEntities.Add(System.Guid.Parse(guid), this);
+        //manager.basicProcedureEntities.Add(System.Guid.Parse(guid), this);
     }
 
     public void MakeRPC(string procedureName)
     {
         Invoke(procedureName, 0f);
-        RPCMessage msg = new RPCMessage(WebSocketBehaviour.instance.ConnectionID, System.Guid.Parse(guid), procedureName);
-        Sync(msg);        
+        //RPCMessage msg = new RPCMessage(WebSocketBehaviour.instance.ConnectionID, System.Guid.Parse(guid), procedureName);
+        //Sync(msg);        
     }
 
     private void Sync(RPCMessage msg)

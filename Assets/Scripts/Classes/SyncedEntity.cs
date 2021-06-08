@@ -11,8 +11,8 @@ public class SyncedEntity : MonoBehaviour
     public bool isDebug = false;
     [Tooltip("This synced entity will only be updated on the server if this member is set to true")]
     public bool isOnline = true;
-    [HideInInspector]
-    public string guid;
+
+    public string id = 0.ToString();
 
     public virtual void Start()
     {
@@ -25,12 +25,12 @@ public class SyncedEntity : MonoBehaviour
         {
             if(isOnline)
             {
+                if (isDebug) Debug.Log("Sending via " + WebSocketBehaviour.instance.adress + ": " + msg.ToJson());
                 WebSocketBehaviour.instance.Send(msg);
             } else
             {
                 if (isDebug) Debug.Log(gameObject.name + " is trying to send a message, but is currently offline");
             }
-            if(isDebug) Debug.Log("Sending via " + WebSocketBehaviour.instance.adress + ": " + msg.ToJson());
         }
         catch (Exception e)
         {
@@ -38,26 +38,17 @@ public class SyncedEntity : MonoBehaviour
         }
     }
 
-    public void SetRandomGuid()
+    public void TestProcessMessage(string msg)
     {
-        guid = System.Guid.NewGuid().ToString();
-    }
-
-    public void SetGuid(string newID)
-    {
-        Guid temp;
-        if(System.Guid.TryParse(newID, out temp))
-        {
-            guid = newID;
-            return;
-        }
-        Debug.LogError("Failed to parse new ID for " + gameObject.name);
+        ProcessMessage(msg);
     }
 
     protected IEnumerator RegisterOnMessageEvent()
     {
-        Func<bool> tempFunc = () => WebSocketBehaviour.WebSocketStatus();
-        yield return new WaitUntil(tempFunc);
+        while (WebSocketBehaviour.instance == null)
+        {
+            yield return new WaitForSeconds(0.2f);
+        }
 
         WebSocketBehaviour.instance.GetWS().OnMessage += (byte[] msg) =>
         {
@@ -72,10 +63,13 @@ public class SyncedEntity : MonoBehaviour
         try
         {
             IDMessage target = IDMessage.FromJson(msg);
-            if(target.connectionID == guid)
+            if(target.type == WebsocketMessageType.SyncedGameObject && target.connectionID != WebSocketBehaviour.instance.ConnectionID.ToString())
             {
-                TransformMessage message = TransformMessage.FromJson(msg);
-                RecieveValues(msg);
+                SyncedGameObjectMessage objectMessage = SyncedGameObjectMessage.FromJson(msg);
+                if (objectMessage.messageGuid == id)
+                {
+                    StartCoroutine(RecieveValues(msg));
+                }
             }
         }
         catch (Exception e)
@@ -85,8 +79,9 @@ public class SyncedEntity : MonoBehaviour
         }
     }
 
-    protected virtual void RecieveValues(string msg)
+    protected virtual IEnumerator RecieveValues(string msg)
     {
+        yield return 0;
         Debug.Log("Excuted base function for recieve value");
     }
 }

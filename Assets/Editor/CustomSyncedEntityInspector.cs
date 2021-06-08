@@ -11,11 +11,5 @@ public class CustomSyncedEntityInfo : Editor
     {
         SyncedEntity script = (SyncedEntity)target;
         DrawDefaultInspector();
-
-        EditorGUILayout.LabelField("ID", script.guid);
-        if (GUILayout.Button("New Id"))
-        {
-            script.SetRandomGuid();
-        }
     }
 }
