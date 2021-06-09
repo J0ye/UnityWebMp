@@ -7,13 +7,31 @@ using System;
 [CustomEditor(typeof(BasicBehaviour), true)]
 public class CustomWebsocketInfo : Editor
 {
+    BasicBehaviour script;
     public override void OnInspectorGUI()
     {
-        BasicBehaviour script = (BasicBehaviour)target;
-        DrawDefaultInspector();
+        script = (BasicBehaviour)target;
 
+        PaintDefault();
+
+        if(script.displayStateInText)
+        {
+            PaintDisplayTextField();
+        }
+    }
+
+    private void PaintDefault()
+    {
         DisplayID();
-        EditorGUILayout.LabelField("State", script.GetState());        
+        EditorGUILayout.LabelField("State", script.GetState());
+        DrawDefaultInspector();
+    }
+
+    private void PaintDisplayTextField()
+    {
+        SerializedProperty displayTextProp = serializedObject.FindProperty("displayText");
+        EditorGUILayout.PropertyField(displayTextProp, new GUIContent("Display Text"));
+        serializedObject.ApplyModifiedProperties();
     }
 
     private void DisplayID()
@@ -21,7 +39,7 @@ public class CustomWebsocketInfo : Editor
         try
         {
             WebSocketBehaviour wb = (WebSocketBehaviour)target;
-            EditorGUILayout.LabelField("ID", wb.ConnectionID.ToString());
+            EditorGUILayout.LabelField("Connection ID", wb.ConnectionID.ToString());
         }
         catch (Exception e)
         {

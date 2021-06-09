@@ -1,23 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8001679068916519389
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4c3631f5e58749a59194e0cf6baf6d5, type: 3}
-  m_Name: Android Providers
-  m_EditorClassIdentifier: 
-  m_RequiresSettingsUpdate: 0
-  m_AutomaticLoading: 0
-  m_AutomaticRunning: 0
-  m_Loaders:
-  - {fileID: 11400000, guid: 24f6083071953ce4a97c06bdd8457398, type: 2}
---- !u!114 &-772317130962427491
+--- !u!114 &-8708974194103415775
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -29,56 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d236b7d11115f2143951f1e14045df39, type: 3}
   m_Name: WebGL Settings
   m_EditorClassIdentifier: 
-  m_LoaderManagerInstance: {fileID: -29372906560154717}
+  m_LoaderManagerInstance: {fileID: 6515417885173991394}
   m_InitManagerOnStart: 1
---- !u!114 &-29372906560154717
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4c3631f5e58749a59194e0cf6baf6d5, type: 3}
-  m_Name: WebGL Providers
-  m_EditorClassIdentifier: 
-  m_RequiresSettingsUpdate: 0
-  m_AutomaticLoading: 0
-  m_AutomaticRunning: 0
-  m_Loaders: []
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2dc886499c26824283350fa532d087d, type: 3}
-  m_Name: XRGeneralSettings
-  m_EditorClassIdentifier: 
-  Keys: 010000000d00000007000000
-  Values:
-  - {fileID: 8235568451493093040}
-  - {fileID: -772317130962427491}
-  - {fileID: 812558307949509825}
---- !u!114 &812558307949509825
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d236b7d11115f2143951f1e14045df39, type: 3}
-  m_Name: Android Settings
-  m_EditorClassIdentifier: 
-  m_LoaderManagerInstance: {fileID: -8001679068916519389}
-  m_InitManagerOnStart: 1
---- !u!114 &7878808807578981826
+--- !u!114 &-4035601259941946595
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,8 +30,24 @@ MonoBehaviour:
   m_AutomaticLoading: 0
   m_AutomaticRunning: 0
   m_Loaders:
-  - {fileID: 11400000, guid: 24f6083071953ce4a97c06bdd8457398, type: 2}
---- !u!114 &8235568451493093040
+  - {fileID: 11400000, guid: a01cf51484144dd488a8947966d10080, type: 2}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2dc886499c26824283350fa532d087d, type: 3}
+  m_Name: XRGeneralSettings
+  m_EditorClassIdentifier: 
+  Keys: 010000000d000000
+  Values:
+  - {fileID: 4775694315012289774}
+  - {fileID: -8708974194103415775}
+--- !u!114 &4775694315012289774
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -107,5 +59,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d236b7d11115f2143951f1e14045df39, type: 3}
   m_Name: Standalone Settings
   m_EditorClassIdentifier: 
-  m_LoaderManagerInstance: {fileID: 7878808807578981826}
+  m_LoaderManagerInstance: {fileID: -4035601259941946595}
   m_InitManagerOnStart: 1
+--- !u!114 &6515417885173991394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4c3631f5e58749a59194e0cf6baf6d5, type: 3}
+  m_Name: WebGL Providers
+  m_EditorClassIdentifier: 
+  m_RequiresSettingsUpdate: 0
+  m_AutomaticLoading: 0
+  m_AutomaticRunning: 0
+  m_Loaders:
+  - {fileID: 11400000, guid: 4b3b11664134a0046986c2d27de36abb, type: 2}

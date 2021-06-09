@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Events;
 using Msg;
-
 using HybridWebSocket;
 
 public class WebSocketBehaviour : BasicBehaviour
@@ -15,10 +15,13 @@ public class WebSocketBehaviour : BasicBehaviour
     protected Guid connectionID;
     public Guid ConnectionID { get => connectionID; set => connectionID = value; }
 
+    public UnityEvent OnConnect = new UnityEvent();
+
     // Use this for initialization
     protected override void Start()
     {
         base.Start(); // Sets up adress to websocketserver 
+
         // Singelton
         if (instance != null)
             Destroy(this);
@@ -39,6 +42,11 @@ public class WebSocketBehaviour : BasicBehaviour
         {
             if(isDebug) Debug.Log("Base received message: " + Encoding.UTF8.GetString(msg));
         };
+    }
+
+    protected void LateUpdate()
+    {
+        if (ws.GetState() == WebSocketState.Open) OnConnect.Invoke();
     }
 
     protected virtual void OnApplicationQuit()

@@ -50,7 +50,6 @@ public class SyncedGameObject : SyncedEntity
         // Dont have to check id. Has to be a valid guid, because of parent structure of this class
         SyncedGameObjectMessage msg = new SyncedGameObjectMessage(this);
         Send(msg);
-        Debug.Log("Updated values on server");
     }
 
     protected override IEnumerator RecieveValues(string msg)
