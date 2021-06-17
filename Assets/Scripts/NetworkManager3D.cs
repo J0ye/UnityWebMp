@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using Msg;
+using WebXR;
 
 public class NetworkManager3D : NetworkManager
 {
-    public PlayerController player;
+    public Transform player;
     public GameObject onlinePlayerPrefab;
-    public GameObject vrOnlinePlayerPrefab;
 
     public Dictionary<Guid, BasicProcedureEntity> basicProcedureEntities = new Dictionary<Guid, BasicProcedureEntity>();
 
@@ -31,13 +31,13 @@ public class NetworkManager3D : NetworkManager
     protected override void Start()
     {
         base.Start();
-        lastFrame = new LastFrameInfo(player.transform);
+        lastFrame = new LastFrameInfo(player);
     }
 
     protected virtual void LateUpdate()
     {
-        //if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.transform.position.Round(1));
-        if (!lastFrame.CompareValues(player.transform, 1))
+        //if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.position.Round(1));
+        if (!lastFrame.CompareValues(player, 1))
         {
             SendTransform();
         }
@@ -60,9 +60,9 @@ public class NetworkManager3D : NetworkManager
             if (WebSocketBehaviour.instance != null)
             {
                 //if (debug) Debug.Log("Sending transform informations");
-                TransformMessage msg = new TransformMessage(WebSocketBehaviour.instance.ConnectionID, player.transform);
+                TransformMessage msg = new TransformMessage(WebSocketBehaviour.instance.ConnectionID, player);
                 WebSocketBehaviour.instance.Send(msg);
-                lastFrame.UpdateValues(player.transform);
+                lastFrame.UpdateValues(player);
                 if (debug) Debug.Log("Finisehed transform informations");
             }
         }
@@ -103,7 +103,7 @@ public class NetworkManager3D : NetworkManager
         {
             if (!onlinePlayerObjects.ContainsKey(update.Guid))
             {
-                onlinePlayerObjects.Add(update.Guid, Instantiate(vrOnlinePlayerPrefab));
+                onlinePlayerObjects.Add(update.Guid, Instantiate(onlinePlayerPrefab));
             }
 
             // The VRPlayerPrefab is set up like a Vr player, but without any functions. 
@@ -111,7 +111,7 @@ public class NetworkManager3D : NetworkManager
             Transform webXRRig = onlinePlayerObjects[update.Guid].transform.GetChild(0);
             Transform lHand = webXRRig.GetChild(0); // The first child should be the left hand
             Transform rHand = webXRRig.GetChild(1); // The second should be the right hand
-            Transform head = webXRRig.GetChild(2); // The last chidl should be the ehad object
+            Transform head = webXRRig.GetChild(2); // The last child should be the ehad object
 
             SetNewTransformValues(lHand, update.lHand);
             SetNewTransformValues(rHand, update.rHand);

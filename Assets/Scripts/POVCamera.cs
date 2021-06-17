@@ -31,7 +31,7 @@ public class POVCamera : MonoBehaviour
             lookVector.y = Mathf.Clamp(lookVector.y, -90, 90);
         } else if (Input.touchCount > 0 || (simulateTouch && Input.GetKey(activationKey)))
         {
-            // Calculation of camera orientation by mouse
+            // Calculation of camera orientation by touch
             if (Input.touchCount > 0) mouseOrientation = new Vector2(Input.touches[0].deltaPosition.x, Input.touches[0].deltaPosition.y);
             if (Input.GetKey(activationKey)) mouseOrientation = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
             mouseOrientation = Vector2.Scale(mouseOrientation, new Vector2(sensitivity * smooth, sensitivity * smooth));

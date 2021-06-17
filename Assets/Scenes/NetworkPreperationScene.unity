@@ -326,7 +326,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1302146652}
   - component: {fileID: 1302146651}
-  - component: {fileID: 1302146650}
   m_Layer: 0
   m_Name: WebSocket
   m_TagString: Untagged
@@ -334,25 +333,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1302146650
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1302146649}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60a5ca17910b1504090d1cb6a19e1ab5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: base
-  adress: wss://joye.dev:9000/
-  pingFrequency: 0.5
-  dontDestroyOnLoad: 1
-  displayStateInText: 0
-  displayText: {fileID: 0}
-  isDebug: 0
 --- !u!114 &1302146651
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -430,7 +410,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ColorTable: []
-  sceneName: 3DScene
+  sceneName: Mixed
 --- !u!4 &1463221234
 Transform:
   m_ObjectHideFlags: 0

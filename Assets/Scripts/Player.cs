@@ -9,7 +9,6 @@ public class Player : MonoBehaviour
 {
     [Header("Input Settings")]
     public DPadInput visualInput;
-    public List<KeyCode> movementKeys = new List<KeyCode>();
 
     protected virtual Vector3 GetInputAxis()
     {
@@ -24,14 +23,24 @@ public class Player : MonoBehaviour
         return re;
     }
 
+    protected virtual Vector3 GetInputAxisRaw()
+    {
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
+
+        // calculate direction vectors based on orientation
+        Vector3 forward = transform.forward * v;
+        Vector3 sideways = transform.right * h;
+
+        Vector3 re = forward + sideways;
+        return re;
+    }
+
     protected virtual bool ShouldMove()
     {
-        foreach (KeyCode kc in movementKeys)
+        if(GetInputAxisRaw() != Vector3.zero)
         {
-            if (Input.GetKey(kc))
-            {
-                return true;
-            }
+            return true;
         }
         if (visualInput != null)
         {

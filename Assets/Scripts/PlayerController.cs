@@ -6,10 +6,10 @@ using UnityEngine.UI;
 public class PlayerController : Player
 {
     [Header("Movment Options")]
-    public float speed = 5f;
-    public float fallSpeed = 5f;
-    public float hoverHeight = 1f;
-    public float jumpStrength = 5f;
+    public float speed = 7f;
+    public float fallSpeed = 10f;
+    public float hoverHeight = 1.5f;
+    public float jumpStrength = 2f;
     public LayerMask groundLayer;
 
     protected Tween fallSpeedTween;
@@ -28,11 +28,8 @@ public class PlayerController : Player
     void Update()
     {
         // Walking
-        if (ShouldMove())
-        {
-            Vector3 target = new Vector3(GetInputAxis().x, 0, GetInputAxis().z); // ignore the y axis
-            Move(target);
-        }
+        Vector3 target = new Vector3(GetInputAxisRaw().x, 0, GetInputAxisRaw().z); // ignore the y axis
+        Move(target);
 
         // Jumping
         if (Input.GetButton("Jump") && grounded)
@@ -87,6 +84,5 @@ public class PlayerController : Player
             grounded = true;
             ResetJump();
         }
-
     }
 }

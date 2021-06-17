@@ -41,6 +41,7 @@ public class WebSocketBehaviour : BasicBehaviour
         ws.OnMessage += (byte[] msg) =>
         {
             if(isDebug) Debug.Log("Base received message: " + Encoding.UTF8.GetString(msg));
+            ProcessMessage(Encoding.UTF8.GetString(msg));
         };
     }
 
@@ -52,6 +53,22 @@ public class WebSocketBehaviour : BasicBehaviour
     protected virtual void OnApplicationQuit()
     {
         ws.Close();
+    }
+
+    protected virtual void ProcessMessage(string msg)
+    {
+        try
+        {
+            IDMessage message = IDMessage.FromJson(msg);
+
+            if(message.type == WebsocketMessageType.ID)
+            {
+                connectionID = message.Guid;
+            }
+        } catch(Exception e)
+        {
+            Debug.Log("Recieved strange message: " + msg + ". Led to: " + e);
+        }
     }
 
     public void Send(IDMessage msg)

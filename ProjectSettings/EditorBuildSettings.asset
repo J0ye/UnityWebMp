@@ -8,9 +8,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/NetworkPreperationScene.unity
     guid: 00508f444bc1f8947ab7a490896e4b81
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/3DScene.unity
     guid: 3323d224a53164449bcb97068357de2c
+  - enabled: 1
+    path: Assets/Scenes/Mixed.unity
+    guid: 07f4c0bfb3be18f429887c0aff3b36eb
+  - enabled: 0
+    path: Assets/Samples/WebXR Interactions/0.11.0-preview/Sample Scene/Scenes/Desert.unity
+    guid: 85380d4847db7b74a850284461349c36
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: e756dafa6ae44ae4bbe5ce19758de81b,
       type: 2}

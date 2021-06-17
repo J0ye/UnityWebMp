@@ -218,6 +218,23 @@ namespace Msg
             rHand = new TransformMessage(player.rHand);
         }
 
+        /// <summary>
+        /// Creates a VRPlayerMessage based on the values of a typical WebXRCameraset structur.
+        /// This will elad to errors, if the target is using a non conform structure.
+        /// </summary>
+        /// <param name="player">Target WebXRManager, with a standard structure,
+        /// i.e.    Manager.child = left hand
+        ///         Manager.secondChild = right hand
+        ///         Manager.thirdChild.child = Main head</param>
+        public VRPlayerMessage(WebXR.WebXRManager player)
+        {
+            type = WebsocketMessageType.VRPlayer;
+            // Dont need to set guid. Message will be signed on send
+            head = new TransformMessage(player.transform.GetChild(2).GetChild(0));
+            lHand = new TransformMessage(player.transform.GetChild(0));
+            rHand = new TransformMessage(player.transform.GetChild(1));
+        }
+
         public VRPlayerMessage(Transform headt, Transform lHandt, Transform rHandt)
         {
             type = WebsocketMessageType.VRPlayer;

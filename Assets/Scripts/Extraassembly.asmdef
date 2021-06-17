@@ -1,0 +1,20 @@
+{
+    "name": "ExtraAssembly",
+    "references": [
+        "GUID:fd4abe4ffe74ef1448afe15c6cb36bb7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "websocket-sharp.dll",
+        "DOTween.dll",
+        "DOTweenEditor.dll",
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
