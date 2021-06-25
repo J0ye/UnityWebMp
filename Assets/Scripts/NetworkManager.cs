@@ -45,10 +45,10 @@ public class NetworkManager : MonoBehaviour
         try
         {
             IDMessage target = IDMessage.FromJson(msg);
-            if (debug) Debug.Log("From Json: guid " + target.connectionID + " and type " + target.type);
             // Ignore, if the message is about this game
             if (target.Guid != WebSocketBehaviour.instance.ConnectionID && target.type != WebsocketMessageType.SyncedGameObject)
             {
+                if (debug) Debug.Log("From Json: guid " + target.connectionID + " and type " + target.type);
                 ExecuteOnJson(target, msg);
             }
         }

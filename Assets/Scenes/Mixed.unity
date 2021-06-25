@@ -1112,9 +1112,9 @@ RectTransform:
   m_Father: {fileID: 567255146}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 374.36, y: -209.97}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -25.640015, y: 14.839996}
   m_SizeDelta: {x: 51.277832, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &461582096
@@ -3354,7 +3354,7 @@ MonoBehaviour:
   dontDestroyOnLoad: 1
   displayStateInText: 0
   displayText: {fileID: 0}
-  isDebug: 0
+  isDebug: 1
   OnConnect:
     m_PersistentCalls:
       m_Calls: []
@@ -3367,14 +3367,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1286033196}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94495b8ab5ad5c7438d8f2d4c232d97d, type: 3}
+  m_Script: {fileID: 11500000, guid: fe48f4d5ad884bf4a9174d838b3fa193, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   pingFrequency: 1
-  debug: 0
+  debug: 1
   player: {fileID: 1946401491}
   onlinePlayerPrefab: {fileID: 4491890406141848871, guid: c0bc2cd4e33f3d14e932bf472afecd7a,
     type: 3}
+  vrPlayer: {fileID: 1611362088740119}
 --- !u!4 &1286033199
 Transform:
   m_ObjectHideFlags: 0
@@ -4440,6 +4441,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 504698178}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1611362088740119 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114038308936181916, guid: 54a613ba6e982e84db04156af08d6a89,
+    type: 3}
+  m_PrefabInstance: {fileID: 504698178}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611362088740118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 519f6ee6510174b44bbe9a8a2d3b6a6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &4545079093500026 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4545079059221816, guid: 54a613ba6e982e84db04156af08d6a89,

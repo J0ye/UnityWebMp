@@ -34,19 +34,29 @@ public class NetworkManagerMixed : NetworkManager3D
         headInfo.UpdateValues(head);
     }
 
+    protected override void LateUpdate()
+    {
+        base.LateUpdate();
+        //if (debug) Debug.Log("Comparing " + lastFrame.position.Round(1) + " with " + player.position.Round(1));
+        if ((!headInfo.CompareValues(head, 1) 
+            || !leftHandInfo.CompareValues(leftHand, 1) 
+            || !rightHandInfo.CompareValues(rightHand, 1)) && IsVR())
+        {
+            SendTransform();
+        }
+    }
+
     protected override void SendTransform()
     {
-        if (!IsVR())
-        {
-            base.SendTransform();
-        } else
+        base.SendTransform();
+        if (IsVR())
         {
             VRPlayerMessage msg = new VRPlayerMessage(vrPlayer);
             WebSocketBehaviour.instance.Send(msg);
             headInfo.UpdateValues(head);
             leftHandInfo.UpdateValues(leftHand);
             rightHandInfo.UpdateValues(rightHand);
-            if (debug) Debug.Log("Finisehed transform informations");
+            if (debug) Debug.Log("Finisehed vr transform informations");
         }
     }
 }
