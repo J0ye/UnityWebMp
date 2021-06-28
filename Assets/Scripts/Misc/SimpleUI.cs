@@ -10,9 +10,9 @@ public class SimpleUI : MonoBehaviour
     [Header("Options")]
     public Color targetColor = new Color();
 
-    private List<Color> oldColors = new List<Color>();
+    protected List<Color> oldColors = new List<Color>();
 
-    public void Start()
+    public virtual void Start()
     {
         foreach(GameObject obj in elements)
         {
@@ -83,7 +83,7 @@ public class SimpleUI : MonoBehaviour
         elements[i].SetActive(!elements[i].activeSelf);
     }
 
-    private bool CheckListLength(int i)
+    protected bool CheckListLength(int i)
     {
         if (i >= elements.Count)
         {

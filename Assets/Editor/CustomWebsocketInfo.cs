@@ -43,7 +43,7 @@ public class CustomWebsocketInfo : Editor
         }
         catch (Exception e)
         {
-            
+
         }
     }
 }
